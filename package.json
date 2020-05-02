@@ -1,0 +1,33 @@
+{
+  "name": "home-guard",
+  "version": "0.0.1",
+  "description": "MJ's Home Guard",
+  "main": "srv/index.js",
+  "type": "module",
+  "dependencies": {
+    "@koa/router": "8.0.8",
+    "dotenv": "8.2.0",
+    "koa": "2.11.0",
+    "koa-basic-auth": "4.0.0",
+    "koa-bodyparser": "^4.3.0",
+    "node-inspect": "^1.11.6"
+  },
+  "devDependencies": {
+    "nodemon": "~2.0.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "nodemon --experimental-modules --inspect=0.0.0.0:9229 srv/index.js",
+    "start": "NODE_ENV=prod node --experimental-modules srv/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mjaniszew/home-guard.git"
+  },
+  "author": "Michal Janiszewski",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mjaniszew/home-guard/issues"
+  },
+  "homepage": "https://github.com/mjaniszew/home-guard#readme"
+}
