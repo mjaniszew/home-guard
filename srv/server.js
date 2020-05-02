@@ -4,7 +4,7 @@ import mainRouter from './routes/main.js';
 import sensorsRouter from './routes/sensors.js';
 import config from './config.js';
 
-const app = new Koa();
+const server = new Koa();
 
 try {
   if (config.nodeEnv == 'prod' && (!config.username || !config.pwd)) {
@@ -15,7 +15,7 @@ try {
 }
 
 // Basic Auth
-app.use(async (ctx, next) => {
+server.use(async (ctx, next) => {
   try {
     await next();
   } catch (err) {
@@ -30,14 +30,14 @@ app.use(async (ctx, next) => {
 });
 
 // logger
-app.use(async (ctx, next) => {
+server.use(async (ctx, next) => {
   await next();
   const rt = ctx.response.get('X-Response-Time');
   console.log(`${ctx.method} ${ctx.url} - ${rt}`);
 });
 
 // x-response-time
-app.use(async (ctx, next) => {
+server.use(async (ctx, next) => {
   const start = Date.now();
   await next();
   const ms = Date.now() - start;
@@ -45,9 +45,9 @@ app.use(async (ctx, next) => {
 });
 
 // require auth
-app.use(auth({ name: config.username, pass: config.pwd}));
+server.use(auth({ name: config.username, pass: config.pwd}));
 
-app
+server
   .use(mainRouter.routes())
   .use(mainRouter.allowedMethods())
   .use(sensorsRouter.routes())
@@ -56,4 +56,4 @@ app
 
 console.log(`Home Guard listening on port ${config.serverPort}`);
 
-export default app;
+export default server;

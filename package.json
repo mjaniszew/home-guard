@@ -2,7 +2,7 @@
   "name": "home-guard",
   "version": "0.0.1",
   "description": "MJ's Home Guard",
-  "main": "srv/index.js",
+  "main": "app.js",
   "type": "module",
   "dependencies": {
     "@koa/router": "8.0.8",
@@ -17,8 +17,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "debug": "nodemon --experimental-modules --inspect=0.0.0.0:9229 srv/index.js",
-    "start": "NODE_ENV=prod node --experimental-modules srv/index.js"
+    "debug": "nodemon --experimental-modules --inspect=0.0.0.0:9229 srv/server.js",
+    "start": "NODE_ENV=prod node --experimental-modules srv/server.js"
   },
   "repository": {
     "type": "git",
