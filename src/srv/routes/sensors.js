@@ -24,7 +24,7 @@ const processRequestData = (requestData) => {
 
 // Sensors handling
 router
-  .get('/', (ctx, next) => {
+  .get('/', async (ctx, next) => {
     ctx.body = data.sensors;
   })
   .put('/', body(), (ctx, next) => {

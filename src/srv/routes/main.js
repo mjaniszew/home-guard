@@ -4,7 +4,7 @@ const router = new Router();
 
 // Main route
 router
-  .get('/', (ctx, next) => {
+  .get('/', async (ctx, next) => {
     ctx.body = 'Nothing to see here. Move along.';
   });
 
