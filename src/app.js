@@ -1,2 +1,4 @@
-import app from "./srv/server.js";
-export default app;
+import { app } from "./srv/server.js";
+import { client } from "./client/client.js";
+app();
+client();

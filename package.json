@@ -4,28 +4,25 @@
   "description": "MJ's Home Guard",
   "main": "src/app.js",
   "type": "module",
+  "node": "^18.0.0 || >=20.0.0",
   "dependencies": {
-    "@koa/router": "8.0.8",
-    "dotenv": "8.2.0",
-    "koa": "2.11.0",
-    "koa-basic-auth": "4.0.0",
-    "koa-bodyparser": "4.3.0"
+    "@fastify/mongodb": "^8.0.0",
+    "@fastify/static": "^7.0.4",
+    "@fastify/websocket": "^10.0.1",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.26.2",
+    "fastify-plugin": "^4.5.1",
+    "node-webcam": "^0.8.2",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.6",
-    "@babel/plugin-transform-regenerator": "^7.8.7",
-    "@babel/preset-env": "^7.9.6",
-    "babel-loader": "^8.1.0",
-    "node-inspect": "~1.11.6",
-    "nodemon": "~2.0.3",
-    "regenerator-runtime": "^0.13.5",
-    "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11"
+    "nodemon": "^3.1.0",
+    "typescript": "^5.4.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "debug": "nodemon --experimental-modules --inspect=0.0.0.0:9229 src/app.js",
-    "start": "NODE_ENV=prod node --experimental-modules src/app.js",
+    "dev": "NODE_ENV=dev nodemon src/app.js",
+    "start": "NODE_ENV=prod node src/app.js",
     "build": "webpack --mode=production --config webpack.config.cjs"
   },
   "repository": {
