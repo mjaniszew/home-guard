@@ -45,6 +45,8 @@ const streamDataReceiveid = (socket, data) => {
 }
 
 async function routes (fastify, options) {
+  const config = options.config;
+
   fastify.get('/api/monitoring/register-cam/:deviceId', { websocket: true }, (socket, req) => { 
     const { deviceId } = req.params;
     onCamRegister(socket, deviceId);
@@ -58,7 +60,9 @@ async function routes (fastify, options) {
     });
   })
 
-  fastify.get('/api/monitoring/register-webclient/:clientId', { websocket: true }, (socket, req) => {   
+  fastify.get('/api/monitoring/register-webclient/:clientId', { 
+      websocket: true,
+    }, (socket, req) => {   
     const { clientId } = req.params;
     onWebClientRegister(socket, clientId);
     fastify.log.info(`Cam client connected: ${clientId}`);
@@ -94,7 +98,7 @@ async function routes (fastify, options) {
         streamStop(connection.socket);
       });
     }
-  }, 10000);
+  }, config.clientsInterval);
 
   const streamInterval = setInterval(() => {
     if (streamData.length) {
@@ -106,7 +110,7 @@ async function routes (fastify, options) {
         }));
       });
     }
-  }, 200);
+  }, config.streamReceiveInterval);
 }
 
 export {routes as monitoringRoutes};

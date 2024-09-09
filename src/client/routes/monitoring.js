@@ -1,9 +1,5 @@
-import NodeWebcam from 'node-webcam';
-
-import WebSocket from 'ws';
-
 async function routes (fastify, options) {
-  const camHandler = options.camHandler;
+  const { camHandler,  config } = options;
 
   fastify.get('/api/monitoring/list', (req, reply) => {
     const devices = camHandler.getCamDevices();

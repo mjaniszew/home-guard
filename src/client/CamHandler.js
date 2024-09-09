@@ -8,12 +8,14 @@ const CamHandler = class {
   devices;
   registerUrl;
   logger;
+  config;
   framesReader;
   
   constructor(options) {
-    this.clientId = options.clientId;
-    this.deviceId = options.deviceId;
-    this.registerUrl = options.registerUrl;
+    this.config = options.config;
+    this.clientId = this.config.clientId;
+    this.deviceId = this.config.defaultDeviceId;
+    this.registerUrl = `ws://${this.config.serverHost}:${this.config.serverPort}/api/monitoring/register-cam/${this.clientId}`;
   }
 
   setLogger = (logger) => {
@@ -29,8 +31,6 @@ const CamHandler = class {
   }
 
   getCamFrame = () => {
-    this.logger.info(`Getting frame for: ${this.deviceId}`);
-
     const Webcam = NodeWebcam.create({
       width: 1280,
       height: 720,
@@ -68,7 +68,7 @@ const CamHandler = class {
     if (parsedEvent.action === 'STREAM_PLAY') {
       this.framesReader = setInterval(() => {
         this.getCamFrame();
-      }, 400);
+      }, this.config.streamSendInterval);
     }
     if (parsedEvent.action === 'STREAM_STOP') {
       clearInterval(this.framesReader);

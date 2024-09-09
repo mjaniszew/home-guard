@@ -3,34 +3,36 @@ import websocket from '@fastify/websocket';
 import fastifyStatic from '@fastify/static';
 import path from 'node:path';
 
+import { config } from './config.js';
 import { CamHandler } from './CamHandler.js';
 import { mainRoutes } from './routes/main.js'; 
 import { monitoringRoutes } from './routes/monitoring.js'; 
 
-const clientId = 'cam-01';
-
 const fastify = Fastify({
-  logger: true
+  logger: {
+    level: config.nodeEnv === 'prod' ? 'error' : 'info'
+  }
 })
 
 const camHandler = new CamHandler({
   logger: fastify.logger,
-  clientId: clientId,
-  deviceId: 1,
-  registerUrl: `ws://localhost:3000/api/monitoring/register-cam/${clientId}`
+  config,
 });
 
 fastify.register(websocket);
 fastify.register(fastifyStatic, {
   root: path.join(import.meta.dirname, 'public')
 });
-fastify.register(mainRoutes);
+fastify.register(mainRoutes, {
+  config
+});
 fastify.register(monitoringRoutes, {
+  config,
   camHandler
 });
 
 export const client = async () => {
-  fastify.listen({ port: 3001 }, function (err, address) {
+  fastify.listen({ port: config.clientPort }, function (err, address) {
     if (err) {
       fastify.log.error(err)
       process.exit(1)
