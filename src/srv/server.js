@@ -4,6 +4,7 @@ import fastifyStatic from '@fastify/static';
 import path from 'node:path';
 
 import dbConnector from './dbConnector.js'
+// import { camStreamingHandler } from './camStreamingHandler.js';
 import { mainRoutes } from './routes/main.js'; 
 import { monitoringRoutes } from './routes/monitoring.js'; 
 
@@ -12,6 +13,7 @@ const fastify = Fastify({
 })
 
 // fastify.register(dbConnector);
+// fastify.register(camStreamingHandler);
 fastify.register(fastifyWebsocket);
 fastify.register(fastifyStatic, {
   root: path.join(import.meta.dirname, 'public')
