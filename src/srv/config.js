@@ -4,7 +4,9 @@ dotenv.config();
 
 const config = {
   nodeEnv: process.env.NODE_ENV,
-  serverHost: process.env.HOST || 'localhost',
+  connectionSecure: false,
+  serverDomain: process.env.SRV_DOMAIN || 'localhost',
+  serverHost: process.env.SRV_HOST || 'localhost:3000',
   serverPort: process.env.SRV_PORT || 3000,
   streamReceiveInterval: 200,
   streamSendInterval: 200,
