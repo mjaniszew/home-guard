@@ -1,4 +1,4 @@
-import { app } from "./srv/server.js";
+import { server } from "./srv/server.js";
 import { client } from "./client/client.js";
-app();
+server();
 client();

@@ -15,7 +15,7 @@ const CamHandler = class {
     this.config = options.config;
     this.clientId = this.config.clientId;
     this.deviceId = this.config.defaultDeviceId;
-    this.registerUrl = `ws://${this.config.serverHost}:${this.config.serverPort}/api/monitoring/register-cam/${this.clientId}`;
+    this.registerUrl = `${this.config.connectionSecure ? 'wss' : 'ws'}://${this.config.serverHost}/api/monitoring/register-cam/${this.clientId}`;
   }
 
   setLogger = (logger) => {
@@ -65,6 +65,12 @@ const CamHandler = class {
   onMessage = (event) => {
     const parsedEvent = JSON.parse(event);
     this.logger.info(`Cam client ${this.clientId} receivied event: ${parsedEvent.action}`);
+    if (parsedEvent.action === 'REGISTER_AUTH') {
+      this.wsConnection.send(JSON.stringify({
+        action: 'REGISTER_AUTH',
+        staticToken: this.config.authStaticToken
+      }));
+    }
     if (parsedEvent.action === 'STREAM_PLAY') {
       this.framesReader = setInterval(() => {
         this.getCamFrame();

@@ -55,7 +55,7 @@ fastify.register(monitoringRoutes, {
   config
 });
 
-export const app = async () => {
+export const server = async () => {
   fastify.listen({ 
     port: config.serverPort
   }, function (err, address) {

@@ -19,7 +19,15 @@ const connect = () => {
 
   const sendPlayAction = () => {
     webSocketConnection.send(JSON.stringify({
-      action: 'STREAM_PLAY'
+      action: 'STREAM_PLAY',
+      token: getToken()
+    }));
+  }
+
+  const sendWsAuth = () => {
+    webSocketConnection.send(JSON.stringify({
+      action: 'REGISTER_AUTH',
+      token: getToken()
     }));
   }
 
@@ -33,17 +41,14 @@ const connect = () => {
       `${config.connectionSecure? 'wss' : 'ws'}://${config.serverHost}/api/monitoring/register-webclient/${clientId}`,
     );
     webSocketConnection.onopen = (event) => {
-      // streamCanvas = document.getElementById("camStream");
-      // streamCtx = streamCanvas.getContext("2d");
-      // streamImg = new Image(1280, 720);
-      // streamImg.onload = function() {
-      //   streamCtx.drawImage(streamImg, 0, 0);
-      // };
       streamImg = document.getElementById("camStream");
     };
   
     webSocketConnection.onmessage = (event) => {
       const parsedEvent = JSON.parse(event.data);
+      if (parsedEvent.action === "REGISTER_AUTH") {
+        sendWsAuth();
+      }
       if (parsedEvent.action === "REGISTER_CONFIRM") {
         sendPlayAction();
       }
