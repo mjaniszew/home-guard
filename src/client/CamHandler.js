@@ -40,7 +40,7 @@ const CamHandler = class {
       frames: 1,
       saveShots: false,
       output: "jpeg",
-      device: `${this.deviceId}`,
+      device: this.deviceId ? `${this.deviceId}` : false,
       callbackReturn: "base64",
       verbose: false
     });

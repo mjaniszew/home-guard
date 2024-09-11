@@ -4,7 +4,7 @@ dotenv.config();
 
 const config = {
   nodeEnv: process.env.NODE_ENV,
-  connectionSecure: false,
+  connectionSecure: process.env.CONNECTION_SECURE || false,
   serverDomain: process.env.SRV_DOMAIN || 'localhost',
   serverHost: process.env.SRV_HOST || 'localhost:3000',
   serverPort: process.env.SRV_PORT || 3000,

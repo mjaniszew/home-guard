@@ -15,7 +15,6 @@ const fastify = Fastify({
 })
 
 const camHandler = new CamHandler({
-  logger: fastify.logger,
   config,
 });
 

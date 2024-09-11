@@ -10,12 +10,17 @@ import { config } from './config.js';
 import { mainRoutes } from './routes/main.js'; 
 import { authRoutes } from './routes/auth.js'; 
 import { monitoringRoutes } from './routes/monitoring.js'; 
+import { ClientsHandler } from './ClientsHandler.js';
 
 const fastify = Fastify({
   logger: {
     level: config.nodeEnv === 'prod' ? 'error' : 'info'
   }
 })
+
+const clientsHandler = new ClientsHandler({
+  config,
+});
 
 fastify.register(fastifyJwt, {
   secret: config.authSecret
@@ -50,7 +55,8 @@ fastify.register(authRoutes, {
   config
 });
 fastify.register(monitoringRoutes, {
-  config
+  config,
+  clientsHandler
 });
 
 const err = (err, address) => {
@@ -71,4 +77,5 @@ export const server = async () => {
       port: config.serverPort
     }, err)
   }
+  clientsHandler.setLogger(fastify.log);
 }

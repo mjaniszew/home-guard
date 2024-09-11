@@ -28,8 +28,8 @@
     "dev": "nodemon --env-file=.env src/run.js",
     "dev-client": "nodemon --env-file=.env src/client/run.js",
     "dev-server": "nodemon --env-file=.env src/srv/run.js",
-    "start-server": "NODE_ENV=prod node src/srv/run.js",
-    "start-client": "NODE_ENV=prod node src/client/run.js"
+    "start-server": "node src/srv/run.js",
+    "start-client": "node src/client/run.js"
   },
   "repository": {
     "type": "git",
