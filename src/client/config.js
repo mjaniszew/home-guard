@@ -11,7 +11,7 @@ const config = {
   clientHost: process.env.CLIENT_HOST || 'localhost:3001',
   clientPort: process.env.CLIENT_PORT || 3001,
   clientId: process.env.CLIENT_ID || 'cam01',
-  streamSendInterval: 200,
+  streamSendInterval: 500,
   defaultDeviceId:  process.env.CLIENT_DEFAULT_DEVICE || 0,
   authStaticToken: process.env.AUTH_STATIC_TOKEN,
 };

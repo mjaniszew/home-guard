@@ -10,12 +10,14 @@ const CamHandler = class {
   logger;
   config;
   framesReader;
+  streamState;
   
   constructor(options) {
     this.config = options.config;
     this.clientId = this.config.clientId;
     this.deviceId = this.config.defaultDeviceId;
     this.registerUrl = `${this.config.connectionSecure ? 'wss' : 'ws'}://${this.config.serverHost}/api/monitoring/register-cam/${this.clientId}`;
+    this.streamState = "STOP";
   }
 
   setLogger = (logger) => {
@@ -30,7 +32,7 @@ const CamHandler = class {
     this.deviceId = deviceId;
   }
 
-  getCamFrame = () => {
+  getCamFrame = async () => {
     const Webcam = NodeWebcam.create({
       width: 1280,
       height: 720,
@@ -49,6 +51,7 @@ const CamHandler = class {
       }
       this.wsConnection.send(JSON.stringify({
         action: 'STREAM_DATA',
+        staticToken: this.config.authStaticToken,
         data
       }));
     });
@@ -59,10 +62,11 @@ const CamHandler = class {
   }
 
   onConnectionClose = () => {
-    this.logger.info(`Connection terminated`);
+    this.logger.info(`Connection terminated, trying to reconnect in 10 secs...`);
+    setTimeout(this.connect, 10000);
   }
 
-  onMessage = (event) => {
+  onMessage = async (event) => {
     const parsedEvent = JSON.parse(event);
     this.logger.info(`Cam client ${this.clientId} receivied event: ${parsedEvent.action}`);
     if (parsedEvent.action === 'REGISTER_AUTH') {
@@ -72,11 +76,15 @@ const CamHandler = class {
       }));
     }
     if (parsedEvent.action === 'STREAM_PLAY') {
+      this.streamState = 'PLAY';
       this.framesReader = setInterval(() => {
-        this.getCamFrame();
+        if (this.streamState === 'PLAY') {
+          this.getCamFrame();
+        }
       }, this.config.streamSendInterval);
     }
     if (parsedEvent.action === 'STREAM_STOP') {
+      this.streamState = 'STOP';
       clearInterval(this.framesReader);
     }
   }
@@ -85,11 +93,7 @@ const CamHandler = class {
     this.logger.error(error);
   }
 
-  init = () => {
-    NodeWebcam.list(( list ) => {
-      this.devices = list;
-    });
-
+  connect = () => {
     this.wsConnection = new WebSocket(this.registerUrl, {
       perMessageDeflate: false
     });
@@ -98,6 +102,13 @@ const CamHandler = class {
     this.wsConnection.on('open', this.onConnectionOpen);
     this.wsConnection.on('close', this.onConnectionClose);
     this.wsConnection.on('message', this.onMessage);
+  }
+
+  init = () => {
+    NodeWebcam.list(( list ) => {
+      this.devices = list;
+    });
+    this.connect();
   }
 }
 

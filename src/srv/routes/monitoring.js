@@ -35,38 +35,56 @@ const authenticateWebWs = (clientId, token, testToken) => {
   return webClient && webClient.authenticated;
 }
 
-const authenticateCamWs = (deviceId, token, clientToken) => {
-  const camClient = webConnections.find(connection => connection.deviceId === deviceId);
-  if (camClient && !!token && token === clientToken) {
+const authenticateCamWs = (deviceId, staticToken, clientToken) => {
+  const camClient = camConnections.find(connection => connection.deviceId === deviceId);
+  if (camClient && !!staticToken && staticToken === clientToken) {
     camClient.authenticated = true;
   }
   return camClient && camClient.authenticated;
 }
 
-const forceCloseWebWs = (dev) => {
-  const webClient = camConnections.find(connection => connection.clientId === clientId);
-  webClient.socket.close();
-  webClient.authenticated = false;
-  webClient.active = false;
+const forceCloseWebWs = (clientId) => {
+  const webClient = webConnections.find(connection => connection.clientId === clientId);
+  if (webClient) {
+    webClient.socket.close();
+    webClient.authenticated = false;
+    webClient.active = false;
+  }
 }
 
-const streamPlay = (socket) => {
+const forceCloseCamWs = (deviceId) => {
+  const camClient = camConnections.find(connection => connection.deviceId === deviceId);
+  if (camClient) {
+    camClient.socket.close();
+    camClient.authenticated = false;
+    camClient.active = false;
+  }
+}
+
+const streamPlay = () => {
   camConnections.forEach(stream => {
-    stream.socket.send(JSON.stringify({
-      action: 'STREAM_PLAY'
-    }));
+    if (stream.authenticated && stream.active) {
+      stream.socket.send(JSON.stringify({
+        action: 'STREAM_PLAY'
+      }));
+    }
   });
 }
 
-const streamStop = (socket) => {
+const streamStop = () => {
   camConnections.forEach(stream => {
-    stream.socket.send(JSON.stringify({
-      action: 'STREAM_STOP'
-    }));
+    if (stream.authenticated && stream.active) {
+      stream.socket.send(JSON.stringify({
+        action: 'STREAM_STOP'
+      }));
+    }
   });
 }
 
-const streamDataReceiveid = (socket, data) => {
+const streamDataReceiveid = (data) => {
+  if (streamData.length > 20) {
+    streamData.length = 0;
+  }
   streamData.push(data);
 }
 
@@ -78,14 +96,32 @@ async function routes (fastify, options) {
     onCamRegister(socket, deviceId);
     fastify.log.info(`Cam client connected: ${deviceId}`); 
 
+    const waitForAuth = setTimeout(() => { 
+      forceCloseCamWs(deviceId);
+    }, 5000);
+
     socket.on('message', event => {
       const parsedEvent = JSON.parse(event);
-      if (parsedEvent.action === 'REGISTER_AUTH' && authenticateCamWs(deviceId, parsedEvent.token, config.authStaticToken)) {
-        console.log('STATIC TOKEN', parsedEvent.staticToken);
+      fastify.log.info(`Server receivied event: ${parsedEvent.action} from ${deviceId}`);
+      if (!authenticateCamWs(deviceId, parsedEvent.staticToken, config.authStaticToken)) { return }
+
+      if (parsedEvent.action === 'REGISTER_AUTH') {
+        clearTimeout(waitForAuth);
+        socket.send(JSON.stringify({
+          action: 'REGISTER_CONFIRM'
+        }));
       }
       if (parsedEvent.action === 'STREAM_DATA') {
-        streamDataReceiveid(socket, parsedEvent.data);
+        streamDataReceiveid(parsedEvent.data);
       }
+    });
+
+    socket.on('close', () => {
+      fastify.log.info(`Cam disconnected ${deviceId}`);
+      const cams = camConnections.filter(connection => connection.deviceId === deviceId);
+      cams.forEach(client => {
+        camConnections.splice(camConnections.indexOf(client), 1);
+      });
     });
   })
 
@@ -108,13 +144,13 @@ async function routes (fastify, options) {
       if (!authenticateWebWs(clientId, parsedEvent.token)) { return }
 
       if (parsedEvent.action === 'REGISTER_AUTH') {
+        clearTimeout(waitForAuth);
         socket.send(JSON.stringify({
           action: 'REGISTER_CONFIRM'
         }));
-        clearTimeout(waitForAuth);
       }
       if (parsedEvent.action === 'STREAM_PLAY') {
-        streamPlay(socket, parsedEvent);
+        streamPlay();
       }
     });
 
@@ -126,7 +162,7 @@ async function routes (fastify, options) {
       });
       if (!webConnections.length) {
         camConnections.forEach(connection => {
-          streamStop(connection.socket);
+          streamStop();
         });
       }
     });
@@ -140,6 +176,12 @@ async function routes (fastify, options) {
         connection.socket.close();
       });
       webConnections.length = 0;
+    }
+    if (camConnections.length > 20) {
+      camConnections.forEach(connection => {
+        connection.socket.close();
+      });
+      camConnections.length = 0;
     }
     if (!webConnections.length) {
       camConnections.forEach(connection => {

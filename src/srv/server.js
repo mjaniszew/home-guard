@@ -6,7 +6,6 @@ import fastifySecureSession from '@fastify/secure-session';
 import fastifyFormbody from '@fastify/formbody';
 import path from 'node:path';
 
-// import dbConnector from './dbConnector.js'
 import { config } from './config.js';
 import { mainRoutes } from './routes/main.js'; 
 import { authRoutes } from './routes/auth.js'; 
@@ -18,7 +17,6 @@ const fastify = Fastify({
   }
 })
 
-// fastify.register(dbConnector);
 fastify.register(fastifyJwt, {
   secret: config.authSecret
 });
@@ -55,13 +53,22 @@ fastify.register(monitoringRoutes, {
   config
 });
 
+const err = (err, address) => {
+  if (err) {
+    fastify.log.error(err)
+    process.exit(1)
+  }
+};
+
 export const server = async () => {
-  fastify.listen({ 
-    port: config.serverPort
-  }, function (err, address) {
-    if (err) {
-      fastify.log.error(err)
-      process.exit(1)
-    }
-  })
+  if (typeof (PhusionPassenger) !== 'undefined') {
+    fastify.listen({ 
+      path: 'passenger',
+      host: '127.0.0.1'
+    }, err)
+  } else {
+    fastify.listen({ 
+      port: config.serverPort
+    }, err)
+  }
 }
