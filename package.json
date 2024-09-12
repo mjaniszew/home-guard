@@ -20,11 +20,17 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@types/node": "^22.5.4",
+    "copyfiles": "^2.4.1",
     "nodemon": "^3.1.0",
-    "typescript": "^5.4.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run clean && tsc -p tsconfig.json && npm run copy-files",
+    "copy-files": "copyfiles -u 1 ./src/**/public/* ./build/",
+    "clean": "rm -rf ./build",
     "dev": "nodemon --env-file=.env src/run.js",
     "dev-client": "nodemon --env-file=.env src/client/run.js",
     "dev-server": "nodemon --env-file=.env src/srv/run.js",
