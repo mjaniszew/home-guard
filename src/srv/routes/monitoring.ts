@@ -1,10 +1,36 @@
-async function routes (fastify, options) {
-  const config = options.config;
-  const clientsHandler = options.clientsHandler;
+import { 
+  FastifyInstance,
+  RouteShorthandOptions,
+} from 'fastify';
+
+import { 
+  WebConnectionType,
+  CamConnectionType,
+  ClientsHandlerType 
+} from '../ClientsHandler.js';
+import { ConfigType } from '../config.js';
+
+type RouteOptions = RouteShorthandOptions & {
+  config: ConfigType,
+  clientsHandler: ClientsHandlerType,
+};
+
+type RegisterParams = {
+  deviceId?: string,
+  clientId?: string
+};
+
+async function routes (fastify: FastifyInstance, options: RouteOptions) {
+  const { config, clientsHandler } = options;
 
   fastify.get('/api/monitoring/register-cam/:deviceId', { websocket: true }, (socket, req) => { 
     try {
-      const { deviceId } = req.params;
+      const { deviceId } = req.params as RegisterParams;
+
+      if (!deviceId) {
+        return;
+      }
+      
       clientsHandler.onCamRegister(socket, deviceId);
       fastify.log.info(`Cam client connected: ${deviceId}`); 
 
@@ -12,11 +38,15 @@ async function routes (fastify, options) {
         clientsHandler.forceCloseCamWs(deviceId);
       }, 5000);
 
-      socket.on('message', event => {
+      socket.on('message', (event: string) => {
         try {
           const parsedEvent = JSON.parse(event);
           fastify.log.info(`Server receivied event: ${parsedEvent.action} from ${deviceId}`);
-          if (!clientsHandler.authenticateCamWs(deviceId, parsedEvent.staticToken, config.authStaticToken)) { return }
+          if (!clientsHandler.authenticateCamWs(
+            deviceId, parsedEvent.staticToken, config.authStaticToken
+          )) { 
+            return;
+          }
 
           if (parsedEvent.action === 'REGISTER_AUTH') {
             clearTimeout(waitForAuth);
@@ -35,8 +65,10 @@ async function routes (fastify, options) {
       socket.on('close', () => {
         try {
           fastify.log.info(`Cam disconnected ${deviceId}`);
-          const cams = clientsHandler.camConnections.filter(connection => connection.deviceId === deviceId);
-          cams.forEach(client => {
+          const cams = clientsHandler.camConnections.filter(
+            (connection: CamConnectionType) => connection.deviceId === deviceId
+          );
+          cams.forEach((client: CamConnectionType) => {
             clientsHandler.camConnections.splice(clientsHandler.camConnections.indexOf(client), 1);
           });
         } catch (error) {
@@ -52,9 +84,13 @@ async function routes (fastify, options) {
       websocket: true,
     }, (socket, req) => {
     try {
-      const { clientId } = req.params;
+      const { clientId } = req.params as RegisterParams;
       const { token } = req.session.get('data') || {};
       
+      if (!clientId || !token) {
+        return;
+      }
+
       clientsHandler.onWebClientRegister(socket, clientId, token);
       fastify.log.info(`Cam client connected: ${clientId}`);
 
@@ -62,7 +98,7 @@ async function routes (fastify, options) {
         clientsHandler.forceCloseWebWs(clientId);
       }, 5000);
       
-      socket.on('message', event => {
+      socket.on('message', (event: string) => {
         try {
           const parsedEvent = JSON.parse(event);
           fastify.log.info(`Server receivied event: ${parsedEvent.action} from ${clientId}`);
@@ -85,12 +121,14 @@ async function routes (fastify, options) {
       socket.on('close', () => {
         try {
           fastify.log.info(`Web client disconnected ${clientId}`);
-          const clients = clientsHandler.webConnections.filter(connection => connection.clientId === clientId);
-          clients.forEach(client => {
+          const clients = clientsHandler.webConnections.filter(
+            (connection: WebConnectionType) => connection.clientId === clientId
+          );
+          clients.forEach((client: WebConnectionType) => {
             clientsHandler.webConnections.splice(clientsHandler.webConnections.indexOf(client), 1);
           });
           if (!clientsHandler.webConnections.length) {
-            clientsHandler.camConnections.forEach(connection => {
+            clientsHandler.camConnections.forEach((connection: CamConnectionType) => {
               clientsHandler.streamStop();
             });
           }

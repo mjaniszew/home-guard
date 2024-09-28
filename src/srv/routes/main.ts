@@ -1,7 +1,18 @@
-async function routes (fastify, options) {
-  const config = options.config;
+import { 
+  FastifyInstance,
+  RouteShorthandOptions,
+} from 'fastify';
 
-  fastify.get('/', async (request, reply) => {
+import { ConfigType } from '../config.js';
+
+type RouteOptions = RouteShorthandOptions & {
+  config: ConfigType
+};
+
+async function routes (fastify: FastifyInstance, options: RouteOptions) {
+  const { config } = options;
+
+  fastify.get('/', async (_request, reply) => {
     return reply.send('nothing to see here');
   })
   fastify.get('/monitor', async (request, reply) => {
@@ -26,7 +37,7 @@ async function routes (fastify, options) {
   })
   fastify.get('/api/web-config', {
     onRequest: [fastify.authenticate]
-  }, async (request, reply) => {
+  }, async (_request, reply) => {
     try {
       return reply.send({
         serverHost: config.serverHost,

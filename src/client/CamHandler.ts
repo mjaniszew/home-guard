@@ -1,18 +1,31 @@
 import NodeWebcam from 'node-webcam';
 import WebSocket from 'ws';
+import { 
+  FastifyBaseLogger,
+} from 'fastify';
+
+import { ConfigType } from "./config.js";
+
+type CamHandlerOptionsType = {
+  config: ConfigType,
+}
 
 const CamHandler = class {
-  wsConnection;
-  clientId;
-  deviceId;
-  devices;
+  wsConnection: WebSocket | null;
+  clientId: string;
+  deviceId: string | null;
+  devices: string[];
   registerUrl;
-  logger;
-  config;
-  framesReader;
+  logger: FastifyBaseLogger | null;
+  config: ConfigType;
+  framesReader: ReturnType<typeof setInterval> | null;
   streamState;
   
-  constructor(options) {
+  constructor(options: CamHandlerOptionsType) {
+    this.wsConnection = null;
+    this.logger = null;
+    this.devices = [];
+    this.framesReader = null;
     this.config = options.config;
     this.clientId = this.config.clientId;
     this.deviceId = this.config.defaultDeviceId;
@@ -20,7 +33,7 @@ const CamHandler = class {
     this.streamState = "STOP";
   }
 
-  setLogger = (logger) => {
+  setLogger = (logger: FastifyBaseLogger) => {
     this.logger = logger;
   }
 
@@ -28,7 +41,7 @@ const CamHandler = class {
     return this.devices;
   }
 
-  selectCamDevice = (deviceId) => {
+  selectCamDevice = (deviceId: string) => {
     this.deviceId = deviceId;
   }
 
@@ -47,9 +60,9 @@ const CamHandler = class {
 
     Webcam.capture(`/tmp/frame-${this.clientId}`, ( err, data ) => {
       if (err) {
-        return this.logger.error(err);
+        return this.logger?.error(err);
       }
-      this.wsConnection.send(JSON.stringify({
+      this.wsConnection?.send(JSON.stringify({
         action: 'STREAM_DATA',
         staticToken: this.config.authStaticToken,
         data
@@ -58,19 +71,19 @@ const CamHandler = class {
   }
 
   onConnectionOpen = () => {
-    this.logger.info(`Connection established`);
+    this.logger?.info(`Connection established`);
   }
 
   onConnectionClose = () => {
-    this.logger.info(`Connection terminated, trying to reconnect in 10 secs...`);
+    this.logger?.info(`Connection terminated, trying to reconnect in 10 secs...`);
     setTimeout(this.connect, 10000);
   }
 
-  onMessage = async (event) => {
+  onMessage = async (event: string) => {
     const parsedEvent = JSON.parse(event);
-    this.logger.info(`Cam client ${this.clientId} receivied event: ${parsedEvent.action}`);
+    this.logger?.info(`Cam client ${this.clientId} receivied event: ${parsedEvent.action}`);
     if (parsedEvent.action === 'REGISTER_AUTH') {
-      this.wsConnection.send(JSON.stringify({
+      this.wsConnection?.send(JSON.stringify({
         action: 'REGISTER_AUTH',
         staticToken: this.config.authStaticToken
       }));
@@ -85,12 +98,14 @@ const CamHandler = class {
     }
     if (parsedEvent.action === 'STREAM_STOP') {
       this.streamState = 'STOP';
-      clearInterval(this.framesReader);
+      if (this.framesReader) {
+        clearInterval(this.framesReader);
+      }
     }
   }
 
-  onError = (error) => {
-    this.logger.error(error);
+  onError = (error: WebSocket.ErrorEvent) => {
+    this.logger?.error(error);
   }
 
   connect = () => {
@@ -112,4 +127,6 @@ const CamHandler = class {
   }
 }
 
-export { CamHandler };
+type CamHandlerType = InstanceType<typeof CamHandler>
+
+export { CamHandler, CamHandlerType };

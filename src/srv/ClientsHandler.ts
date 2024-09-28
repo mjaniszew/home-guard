@@ -1,22 +1,49 @@
+import WebSocket from "ws";
+import { 
+  FastifyBaseLogger
+} from 'fastify';
+
+import { ConfigType } from "./config.js";
+
+export type WebConnectionType = {
+  clientId: string,
+  socket: WebSocket,
+  active: boolean,
+  authenticated: boolean,
+  token: string,
+}
+
+export type CamConnectionType = {
+  deviceId: string,
+  socket: WebSocket,
+  active: boolean,
+  authenticated: boolean,
+}
+
+type ClientsHandlerOptionsType = {
+  config: ConfigType
+}
+
 const ClientsHandler = class {
-  config;
-  logger;
-  streamData;
-  webConnections;
-  camConnections;
+  private config: ConfigType;
+  private logger: FastifyBaseLogger | null;
+  private streamData: string[];
+  webConnections: WebConnectionType[];
+  camConnections: CamConnectionType[];
   
-  constructor(options) {
+  constructor(options: ClientsHandlerOptionsType) {
     this.config = options.config;
+    this.logger = null;
     this.streamData = [];
     this.webConnections = [];
     this.camConnections = [];
   }
 
-  setLogger = (logger) => {
+  setLogger = (logger: FastifyBaseLogger) => {
     this.logger = logger;
   }
   
-  onCamRegister = (socket, deviceId) => {
+  onCamRegister = (socket: WebSocket, deviceId: string) => {
     this.camConnections.push({
       deviceId,
       socket,
@@ -28,7 +55,7 @@ const ClientsHandler = class {
     }));
   }
   
-  onWebClientRegister = (socket, clientId, token) => {
+  onWebClientRegister = (socket: WebSocket, clientId: string, token: string) => {
     this.webConnections.push({
       clientId,
       socket,
@@ -41,23 +68,23 @@ const ClientsHandler = class {
     }));
   }
   
-  authenticateWebWs = (clientId, token) => {
+  authenticateWebWs = (clientId: string, token: string): boolean => {
     const webClient = this.webConnections.find(connection => connection.clientId === clientId);
     if (webClient && !!token && webClient.token === token) {
       webClient.authenticated = true;
     }
-    return webClient && webClient.authenticated;
+    return Boolean(webClient && webClient.authenticated);
   }
   
-  authenticateCamWs = (deviceId, staticToken, clientToken) => {
+  authenticateCamWs = (deviceId: string, staticToken: string, clientToken: string): boolean => {
     const camClient = this.camConnections.find(connection => connection.deviceId === deviceId);
     if (camClient && !!staticToken && staticToken === clientToken) {
       camClient.authenticated = true;
     }
-    return camClient && camClient.authenticated;
+    return Boolean(camClient && camClient.authenticated);
   }
   
-  forceCloseWebWs = (clientId) => {
+  forceCloseWebWs = (clientId: string) => {
     const webClient = this.webConnections.find(connection => connection.clientId === clientId);
     if (webClient) {
       webClient.socket.close();
@@ -66,7 +93,7 @@ const ClientsHandler = class {
     }
   }
   
-  forceCloseCamWs = (deviceId) => {
+  forceCloseCamWs = (deviceId: string) => {
     const camClient = this.camConnections.find(connection => connection.deviceId === deviceId);
     if (camClient) {
       camClient.socket.close();
@@ -95,7 +122,7 @@ const ClientsHandler = class {
     });
   }
   
-  streamDataReceiveid = (data) => {
+  streamDataReceiveid = (data: string) => {
     if (this.streamData.length > 20) {
       this.streamData.length = 0;
     }
@@ -105,8 +132,8 @@ const ClientsHandler = class {
   initIntervals = () => {
     setInterval(() => {
       try {
-        this.logger.info('Web clients connected: %s', this.webConnections.length);
-        this.logger.info('Cam clients connected: %s', this.camConnections.length);
+        this.logger?.info('Web clients connected: %s', this.webConnections.length);
+        this.logger?.info('Cam clients connected: %s', this.camConnections.length);
         if (this.webConnections.length > 20) {
           this.webConnections.forEach(connection => {
             connection.socket.close();
@@ -120,12 +147,12 @@ const ClientsHandler = class {
           this.camConnections.length = 0;
         }
         if (!this.webConnections.length) {
-          this.camConnections.forEach(connection => {
-            this.streamStop(connection.socket);
+          this.camConnections.forEach(_connection => {
+            this.streamStop();
           });
         }
       } catch (error) {
-        this.logger.error(error);
+        this.logger?.error(error);
       }
     }, this.config.clientsInterval);
   
@@ -143,10 +170,12 @@ const ClientsHandler = class {
           });
         }
       } catch (error) {
-        this.logger.error(error);
+        this.logger?.error(error);
       }
     }, this.config.streamReceiveInterval);
   }
 }
 
-export { ClientsHandler };
+type ClientsHandlerType = InstanceType<typeof ClientsHandler>
+
+export { ClientsHandler, ClientsHandlerType };

@@ -1,4 +1,9 @@
-import Fastify from 'fastify';
+import { Server, IncomingMessage, ServerResponse } from "http";
+import fastify, { 
+  FastifyInstance,
+  FastifyRequest,
+  FastifyReply
+} from 'fastify';
 import fastifyWebsocket from '@fastify/websocket';
 import fastifyStatic from '@fastify/static';
 import fastifyJwt from '@fastify/jwt';
@@ -8,24 +13,42 @@ import path from 'node:path';
 
 import { config } from './config.js';
 import { mainRoutes } from './routes/main.js'; 
-import { authRoutes } from './routes/auth.js'; 
+import { authRoutes, AuthCredentialsBody } from './routes/auth.js'; 
 import { monitoringRoutes } from './routes/monitoring.js'; 
 import { ClientsHandler } from './ClientsHandler.js';
 
-const fastify = Fastify({
+declare module 'fastify' {
+  export interface FastifyInstance {
+    authenticate: any
+  }
+}
+
+declare module '@fastify/secure-session' {
+  interface SessionData {
+    data: AuthCredentialsBody & {
+      token?: string
+    };
+  }
+}
+
+const server: FastifyInstance<
+  Server,
+  IncomingMessage,
+  ServerResponse
+> = fastify({
   logger: {
     level: config.nodeEnv === 'prod' ? 'error' : 'info'
   }
-})
+});
 
 const clientsHandler = new ClientsHandler({
   config,
 });
 
-fastify.register(fastifyJwt, {
+server.register(fastifyJwt, {
   secret: config.authSecret
 });
-fastify.register(fastifySecureSession, {
+server.register(fastifySecureSession, {
   sessionName: 'session',
   cookieName: 'session-cookie',
   key: Buffer.from(config.authSecret, "hex"),
@@ -35,7 +58,7 @@ fastify.register(fastifySecureSession, {
     path: '/',
   }
 });
-fastify.decorate("authenticate", async function(request, reply) {
+server.decorate("authenticate", async function(request: FastifyRequest, reply: FastifyReply) {
   try {
     await request.jwtVerify()
   } catch (err) {
@@ -43,39 +66,40 @@ fastify.decorate("authenticate", async function(request, reply) {
   }
 })
 
-fastify.register(fastifyWebsocket);
-fastify.register(fastifyFormbody);
-fastify.register(fastifyStatic, {
+server.register(fastifyWebsocket);
+server.register(fastifyFormbody);
+server.register(fastifyStatic, {
   root: path.join(import.meta.dirname, 'public')
 });
-fastify.register(mainRoutes, {
+server.register(mainRoutes, {
   config
 });
-fastify.register(authRoutes, {
+server.register(authRoutes, {
   config
 });
-fastify.register(monitoringRoutes, {
+server.register(monitoringRoutes, {
   config,
   clientsHandler
 });
 
-const err = (err, address) => {
+const err = (err: Error | null, _address: string) => {
   if (err) {
-    fastify.log.error(err)
+    server.log.error(err)
     process.exit(1)
   }
 };
 
-export const server = async () => {
-  if (typeof (PhusionPassenger) !== 'undefined') {
-    fastify.listen({ 
+export const srv = async () => {
+  // @ts-ignore
+  if (typeof (PhusionPassenger as Object) !== 'undefined') {
+    server.listen({ 
       path: 'passenger',
       host: '127.0.0.1'
     }, err)
   } else {
-    fastify.listen({ 
+    server.listen({ 
       port: config.serverPort
     }, err)
   }
-  clientsHandler.setLogger(fastify.log);
+  clientsHandler.setLogger(server.log);
 }

@@ -1,4 +1,9 @@
-import Fastify from 'fastify';
+import { Server, IncomingMessage, ServerResponse } from "http";
+import fastify, { 
+  FastifyInstance,
+  FastifyRequest,
+  FastifyReply
+} from 'fastify';
 import websocket from '@fastify/websocket';
 import fastifyStatic from '@fastify/static';
 import path from 'node:path';
@@ -8,7 +13,11 @@ import { CamHandler } from './CamHandler.js';
 import { mainRoutes } from './routes/main.js'; 
 import { monitoringRoutes } from './routes/monitoring.js'; 
 
-const fastify = Fastify({
+const client: FastifyInstance<
+  Server,
+  IncomingMessage,
+  ServerResponse
+> = fastify({
   logger: {
     level: config.nodeEnv === 'prod' ? 'error' : 'info'
   }
@@ -18,25 +27,25 @@ const camHandler = new CamHandler({
   config,
 });
 
-fastify.register(websocket);
-fastify.register(fastifyStatic, {
+client.register(websocket);
+client.register(fastifyStatic, {
   root: path.join(import.meta.dirname, 'public')
 });
-fastify.register(mainRoutes, {
+client.register(mainRoutes, {
   config
 });
-fastify.register(monitoringRoutes, {
+client.register(monitoringRoutes, {
   config,
   camHandler
 });
 
-export const client = async () => {
-  fastify.listen({ port: config.clientPort }, function (err, address) {
+export const camCli = async () => {
+  client.listen({ port: config.clientPort }, (err, _address) => {
     if (err) {
-      fastify.log.error(err)
+      client.log.error(err)
       process.exit(1)
     }
-    camHandler.setLogger(fastify.log);
+    camHandler.setLogger(client.log);
     camHandler.init();
   })
 }
