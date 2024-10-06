@@ -7,8 +7,9 @@ import fastify, {
 import fastifyWebsocket from '@fastify/websocket';
 import fastifyStatic from '@fastify/static';
 import fastifyJwt from '@fastify/jwt';
-import fastifySecureSession from '@fastify/secure-session';
+import fastifyCookie from "@fastify/cookie";
 import fastifyFormbody from '@fastify/formbody';
+import fastifyCors from '@fastify/cors';
 import path from 'node:path';
 
 import { config } from './config.js';
@@ -20,14 +21,6 @@ import { ClientsHandler } from './ClientsHandler.js';
 declare module 'fastify' {
   export interface FastifyInstance {
     authenticate: any
-  }
-}
-
-declare module '@fastify/secure-session' {
-  interface SessionData {
-    data: AuthCredentialsBody & {
-      token?: string
-    };
   }
 }
 
@@ -45,19 +38,14 @@ const clientsHandler = new ClientsHandler({
   config,
 });
 
+server.register(fastifyCors, {
+  origin: [config.serverCorsOrigin],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+});
 server.register(fastifyJwt, {
   secret: config.authSecret
 });
-server.register(fastifySecureSession, {
-  sessionName: 'session',
-  cookieName: 'session-cookie',
-  key: Buffer.from(config.authSecret, "hex"),
-  expiry: 24 * 60 * 60,
-  cookie: {
-    domain: config.serverDomain,
-    path: '/',
-  }
-});
+server.register(fastifyCookie, {});
 server.decorate("authenticate", async function(request: FastifyRequest, reply: FastifyReply) {
   try {
     await request.jwtVerify()

@@ -1,8 +1,6 @@
 import { Server, IncomingMessage, ServerResponse } from "http";
 import fastify, { 
   FastifyInstance,
-  FastifyRequest,
-  FastifyReply
 } from 'fastify';
 import websocket from '@fastify/websocket';
 import fastifyStatic from '@fastify/static';

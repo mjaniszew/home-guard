@@ -85,9 +85,14 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
     }, (socket, req) => {
     try {
       const { clientId } = req.params as RegisterParams;
-      const { token } = req.session.get('data') || {};
+      let token = null;
+
+      if (req.headers.cookie) {
+        const cookies = fastify.parseCookie(req.headers.cookie);
+        token = JSON.parse(cookies.auth)?.token;
+      }
       
-      if (!clientId || !token) {
+      if (!clientId || !fastify.jwt.verify(token)) {
         return;
       }
 

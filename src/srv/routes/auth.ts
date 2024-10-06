@@ -30,12 +30,11 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
           error: "Incorrect credentials"
         });
       }
-      const token = fastify.jwt.sign({username, password}, {expiresIn: 24 * 60 * 60});
-      request.session.set('data', {
+      const token = fastify.jwt.sign({username}, {expiresIn: 24 * 60 * 60});
+      reply.send({
         username,
         token
       });
-      reply.redirect("/monitor");
     } catch (error) {
       fastify.log.error(error);
     }
