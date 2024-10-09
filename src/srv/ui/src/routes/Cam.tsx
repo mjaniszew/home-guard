@@ -16,14 +16,12 @@ export const Cam = () => {
   };
 
   if (config.isPending) {
-    return <span>Loading cams data...</span>;
+    return <span>Loading...</span>;
   }
 
   if (config.isError) {
     return <span>Error: {config.error.message}</span>
   }
-
-
 
   return (
     <Container 

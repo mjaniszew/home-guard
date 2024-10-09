@@ -90,7 +90,7 @@ const CamFeed = ({ camId, auth, config, fullPage, toggleFullPage }: CamFeedProps
             endIcon={fullPage ? <CloseFullscreenIcon /> : <FullscreenIcon /> }
           >{fullPage ? 'Minimize' : 'Expand' }</Button>
         }
-        title={`Live feed from: ${camId}`}
+        title={`Feed: ${camId}`}
       >
       </CardHeader>
       <CardContent>
