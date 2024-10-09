@@ -1,10 +1,8 @@
-import React from 'react';
+import { Navigate } from "react-router-dom";
 
 const Home = () => {
   return (
-    <div>
-      <p>Nothing to see here</p>
-    </div>
+    <Navigate to="/dashboard" ></Navigate>
   );
 };
 

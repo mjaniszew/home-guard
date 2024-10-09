@@ -23,6 +23,7 @@
     "@types/node": "^22.5.4",
     "@types/node-webcam": "^0.8.3",
     "@types/ws": "^8.5.12",
+    "concurrently": "^9.0.1",
     "copyfiles": "^2.4.1",
     "fastify-tsconfig": "^2.0.0",
     "nodemon": "^3.1.0",
@@ -35,10 +36,12 @@
     "copy-files": "copyfiles -u 1 ./src/**/public/* ./build/",
     "clean": "rm -rf ./build",
     "dev": "nodemon --inspect --exec tsx -r dotenv/config src/run.ts",
-    "dev-client": "nodemon --exec tsx -r dotenv/config src/client/run.ts",
-    "dev-server": "nodemon --exec tsx -r dotenv/config src/srv/run.ts",
-    "start-server": "node build/srv/run.js",
-    "start-client": "node build/client/run.js"
+    "dev:all": "concurrently 'npm run dev' 'npm run dev:ui'",
+    "dev:ui": "cd src/srv/ui && npm run dev",
+    "dev:client": "nodemon --exec tsx -r dotenv/config src/client/run.ts",
+    "dev:server": "nodemon --exec tsx -r dotenv/config src/srv/run.ts",
+    "start:server": "node build/srv/run.js",
+    "start:client": "node build/client/run.js"
   },
   "repository": {
     "type": "git",

@@ -27,14 +27,14 @@ type ClientsHandlerOptionsType = {
 const ClientsHandler = class {
   private config: ConfigType;
   private logger: FastifyBaseLogger | null;
-  private streamData: string[];
+  private streamData: Record<string, string[]>;
   webConnections: WebConnectionType[];
   camConnections: CamConnectionType[];
   
   constructor(options: ClientsHandlerOptionsType) {
     this.config = options.config;
     this.logger = null;
-    this.streamData = [];
+    this.streamData = {};
     this.webConnections = [];
     this.camConnections = [];
   }
@@ -102,31 +102,39 @@ const ClientsHandler = class {
     }
   }
   
-  streamPlay = () => {
-    this.camConnections.forEach(stream => {
-      if (stream.authenticated && stream.active) {
-        stream.socket.send(JSON.stringify({
-          action: 'STREAM_PLAY'
-        }));
-      }
-    });
-  }
-  
-  streamStop = () => {
-    this.camConnections.forEach(stream => {
-      if (stream.authenticated && stream.active) {
-        stream.socket.send(JSON.stringify({
-          action: 'STREAM_STOP'
-        }));
-      }
-    });
-  }
-  
-  streamDataReceiveid = (data: string) => {
-    if (this.streamData.length > 20) {
-      this.streamData.length = 0;
+  streamPlay = (deviceId: string) => {
+    const camConnection = this.camConnections.find(
+      connection => connection.deviceId === deviceId
+    );
+
+    if (camConnection?.authenticated && camConnection?.active) {
+      camConnection.socket.send(JSON.stringify({
+        action: 'STREAM_PLAY'
+      }));
     }
-    this.streamData.push(data);
+  }
+  
+  streamStop = (deviceId: string) => {
+    const camConnection = this.camConnections.find(
+      connection => connection.deviceId === deviceId
+    );
+
+    if (camConnection?.authenticated && camConnection?.active) {
+      camConnection.socket.send(JSON.stringify({
+        action: 'STREAM_STOP'
+      }));
+    }
+  }
+  
+  streamDataReceiveid = (deviceId: string, data: string) => {
+    if (!this.streamData[deviceId]) {
+      this.streamData[deviceId] = [];
+    }
+
+    if (this.streamData[deviceId].length > 20) {
+      this.streamData[deviceId].length = 0;
+    }
+    this.streamData[deviceId].push(data);
   }
 
   initIntervals = () => {
@@ -147,8 +155,8 @@ const ClientsHandler = class {
           this.camConnections.length = 0;
         }
         if (!this.webConnections.length) {
-          this.camConnections.forEach(_connection => {
-            this.streamStop();
+          this.camConnections.forEach(connection => {
+            this.streamStop(connection.deviceId);
           });
         }
       } catch (error) {
@@ -158,17 +166,19 @@ const ClientsHandler = class {
   
     setInterval(() => {
       try {
-        if (this.streamData.length) {
-          const streamChunk = this.streamData.shift();
-          this.webConnections.forEach(connection => {
-            if (connection.authenticated && connection.active) {
-              connection.socket.send(JSON.stringify({
-                action: 'STREAM_DATA',
-                data: streamChunk
-              }));
-            }
-          });
-        }
+        Object.keys(this.streamData).forEach((deviceId) => {
+          if (this.streamData[deviceId].length) {
+            const streamChunk = this.streamData[deviceId].shift();
+            this.webConnections.forEach(connection => {
+              if (connection.authenticated && connection.active) {
+                connection.socket.send(JSON.stringify({
+                  action: 'STREAM_DATA',
+                  data: streamChunk
+                }));
+              }
+            });
+          }
+        })
       } catch (error) {
         this.logger?.error(error);
       }

@@ -10,6 +10,19 @@ type CamHandlerOptionsType = {
   config: ConfigType,
 }
 
+enum WS_MESSAGES {
+  REGISTER_AUTH = 'REGISTER_AUTH',
+  REGISTER_CONFIRM = 'REGISTER_CONFIRM',
+  STREAM_PLAY = 'STREAM_PLAY',
+  STREAM_STOP = 'STREAM_STOP',
+  STREAM_DATA = 'STREAM_DATA'
+}
+
+enum STREAM_STATE {
+  PLAY = 'PLAY',
+  STOP = 'STOP'
+}
+
 const CamHandler = class {
   wsConnection: WebSocket | null;
   clientId: string;
@@ -19,7 +32,7 @@ const CamHandler = class {
   logger: FastifyBaseLogger | null;
   config: ConfigType;
   framesReader: ReturnType<typeof setInterval> | null;
-  streamState;
+  streamState: STREAM_STATE;
   
   constructor(options: CamHandlerOptionsType) {
     this.wsConnection = null;
@@ -30,7 +43,7 @@ const CamHandler = class {
     this.clientId = this.config.clientId;
     this.deviceId = this.config.defaultDeviceId;
     this.registerUrl = `${this.config.connectionSecure ? 'wss' : 'ws'}://${this.config.serverHost}/api/monitoring/register-cam/${this.clientId}`;
-    this.streamState = "STOP";
+    this.streamState = STREAM_STATE.STOP;
   }
 
   setLogger = (logger: FastifyBaseLogger) => {
@@ -63,7 +76,7 @@ const CamHandler = class {
         return this.logger?.error(err);
       }
       this.wsConnection?.send(JSON.stringify({
-        action: 'STREAM_DATA',
+        action: WS_MESSAGES.STREAM_DATA,
         staticToken: this.config.authStaticToken,
         data
       }));
@@ -82,22 +95,22 @@ const CamHandler = class {
   onMessage = async (event: string) => {
     const parsedEvent = JSON.parse(event);
     this.logger?.info(`Cam client ${this.clientId} receivied event: ${parsedEvent.action}`);
-    if (parsedEvent.action === 'REGISTER_AUTH') {
+    if (parsedEvent.action === WS_MESSAGES.REGISTER_AUTH) {
       this.wsConnection?.send(JSON.stringify({
-        action: 'REGISTER_AUTH',
+        action: WS_MESSAGES.REGISTER_AUTH,
         staticToken: this.config.authStaticToken
       }));
     }
-    if (parsedEvent.action === 'STREAM_PLAY') {
-      this.streamState = 'PLAY';
+    if (parsedEvent.action === WS_MESSAGES.STREAM_PLAY) {
+      this.streamState = STREAM_STATE.PLAY;
       this.framesReader = setInterval(() => {
-        if (this.streamState === 'PLAY') {
+        if (this.streamState === STREAM_STATE.PLAY) {
           this.getCamFrame();
         }
       }, this.config.streamSendInterval);
     }
-    if (parsedEvent.action === 'STREAM_STOP') {
-      this.streamState = 'STOP';
+    if (parsedEvent.action === WS_MESSAGES.STREAM_STOP) {
+      this.streamState = STREAM_STATE.STOP;
       if (this.framesReader) {
         clearInterval(this.framesReader);
       }

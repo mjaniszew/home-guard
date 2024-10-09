@@ -19,26 +19,6 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
       return reply.sendFile('index.html');
     }
   })
-  // fastify.get('/monitor', async (request, reply) => {
-  //   try {
-  //     const { username, token } = request.session.get('data') || {};
-  //     if (username && token) {
-  //       return reply
-  //         .setCookie('token', token, {
-  //           domain: config.serverDomain,
-  //           path: '/',
-  //           secure: false,
-  //           httpOnly: false,
-  //           maxAge: 24 * 60 * 60,
-  //         })
-  //         .sendFile('monitor.html');
-  //     } else {
-  //       return reply.sendFile('login.html');
-  //     }
-  //   } catch (error) {
-  //     fastify.log.error(error);
-  //   }
-  // })
   fastify.get('/api/web-config', {
     onRequest: [fastify.authenticate]
   }, async (_request, reply) => {

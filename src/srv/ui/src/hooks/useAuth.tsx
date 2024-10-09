@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCookie } from "./useCookie";
 
-type AuthData = {
+export type AuthData = {
   username: string | null,
   token: string | null
 }
@@ -22,7 +22,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [auth, setAuth] = useCookie("auth", {});
+  const [auth, setAuth] = useCookie("auth", initAuthState);
   const navigate = useNavigate();
 
   const authenticate = async (data: AuthData) => {

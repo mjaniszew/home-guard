@@ -1,8 +1,11 @@
 import { useRoutes } from 'react-router-dom';
 import { AuthorizeRoute } from './AuthorizeRoute.js';
+import { Layout } from './Layout.js';
 import { Home } from './Home.js';
 import { Dashboard } from './Dashboard.js';
 import { Login } from './Login.js';
+import { Logout } from './Logout.js';
+import { Cam } from './Cam.js';
 
 const Routes = () => {
   const routes = useRoutes([
@@ -10,7 +13,9 @@ const Routes = () => {
       path: "/",
       element: (
         <AuthorizeRoute>
-          <Home />
+          <Layout>
+            <Home />
+          </Layout>
         </AuthorizeRoute>
       )
     },
@@ -18,13 +23,29 @@ const Routes = () => {
       path: "/dashboard",
       element: (
         <AuthorizeRoute>
-          <Dashboard />
+          <Layout>
+            <Dashboard />
+          </Layout>
+        </AuthorizeRoute>
+      )
+    },
+    {
+      path: "/cam/:id",
+      element: (
+        <AuthorizeRoute>
+          <Layout>
+            <Cam />
+          </Layout>
         </AuthorizeRoute>
       )
     },
     {
       path: "/login",
       element: <Login />
+    },
+    {
+      path: "/logout",
+      element: <Logout />
     }
   ]);
 

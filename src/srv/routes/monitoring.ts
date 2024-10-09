@@ -20,6 +20,14 @@ type RegisterParams = {
   clientId?: string
 };
 
+enum WS_MESSAGES {
+  REGISTER_AUTH = 'REGISTER_AUTH',
+  REGISTER_CONFIRM = 'REGISTER_CONFIRM',
+  STREAM_PLAY = 'STREAM_PLAY',
+  STREAM_STOP = 'STREAM_STOP',
+  STREAM_DATA = 'STREAM_DATA'
+}
+
 async function routes (fastify: FastifyInstance, options: RouteOptions) {
   const { config, clientsHandler } = options;
 
@@ -48,14 +56,14 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
             return;
           }
 
-          if (parsedEvent.action === 'REGISTER_AUTH') {
+          if (parsedEvent.action === WS_MESSAGES.REGISTER_AUTH) {
             clearTimeout(waitForAuth);
             socket.send(JSON.stringify({
-              action: 'REGISTER_CONFIRM'
+              action: WS_MESSAGES.REGISTER_CONFIRM
             }));
           }
-          if (parsedEvent.action === 'STREAM_DATA') {
-            clientsHandler.streamDataReceiveid(parsedEvent.data);
+          if (parsedEvent.action === WS_MESSAGES.STREAM_DATA) {
+            clientsHandler.streamDataReceiveid(deviceId, parsedEvent.data);
           }
         } catch (error) {
           fastify.log.error(error);
@@ -80,11 +88,11 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
     }
   })
 
-  fastify.get('/api/monitoring/register-webclient/:clientId', { 
+  fastify.get('/api/monitoring/register-webclient/:clientId/:deviceId', { 
       websocket: true,
     }, (socket, req) => {
     try {
-      const { clientId } = req.params as RegisterParams;
+      const { clientId, deviceId } = req.params as RegisterParams;
       let token = null;
 
       if (req.headers.cookie) {
@@ -92,12 +100,12 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
         token = JSON.parse(cookies.auth)?.token;
       }
       
-      if (!clientId || !fastify.jwt.verify(token)) {
+      if (!clientId || !deviceId || !fastify.jwt.verify(token)) {
         return;
       }
 
       clientsHandler.onWebClientRegister(socket, clientId, token);
-      fastify.log.info(`Cam client connected: ${clientId}`);
+      fastify.log.info(`Cam client connected: ${clientId}, for feed from ${deviceId}`);
 
       const waitForAuth = setTimeout(() => { 
         clientsHandler.forceCloseWebWs(clientId);
@@ -109,14 +117,14 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
           fastify.log.info(`Server receivied event: ${parsedEvent.action} from ${clientId}`);
           if (!clientsHandler.authenticateWebWs(clientId, parsedEvent.token)) { return }
 
-          if (parsedEvent.action === 'REGISTER_AUTH') {
+          if (parsedEvent.action === WS_MESSAGES.REGISTER_AUTH) {
             clearTimeout(waitForAuth);
             socket.send(JSON.stringify({
-              action: 'REGISTER_CONFIRM'
+              action: WS_MESSAGES.REGISTER_CONFIRM
             }));
           }
-          if (parsedEvent.action === 'STREAM_PLAY') {
-            clientsHandler.streamPlay();
+          if (parsedEvent.action === WS_MESSAGES.STREAM_PLAY) {
+            clientsHandler.streamPlay(deviceId);
           }
         } catch (error) {
           fastify.log.error(error);
@@ -134,13 +142,29 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
           });
           if (!clientsHandler.webConnections.length) {
             clientsHandler.camConnections.forEach((connection: CamConnectionType) => {
-              clientsHandler.streamStop();
+              clientsHandler.streamStop(connection.deviceId);
             });
           }
         } catch (error) {
           fastify.log.error(error);
         }
       });
+    } catch (error) {
+      fastify.log.error(error);
+    }
+  })
+
+  fastify.get('/api/monitoring/cams', {
+    onRequest: [fastify.authenticate]
+  }, async (_request, reply) => {
+    try {
+      const camsList = clientsHandler.camConnections.map(cam => {
+        return {
+          name: cam.deviceId,
+          active: cam.active
+        }
+      });
+      return reply.send(camsList);
     } catch (error) {
       fastify.log.error(error);
     }
