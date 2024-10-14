@@ -13,7 +13,7 @@ import fastifyCors from '@fastify/cors';
 import fastifyMongodb from '@fastify/mongodb';
 import path from 'node:path';
 
-import { config } from './config.js';
+import { config, ConfigType } from './config.js';
 import { mainRoutes } from './routes/main.js'; 
 import { authRoutes } from './routes/auth.js'; 
 import { sensorsRoutes } from './routes/sensors.js';
@@ -68,34 +68,18 @@ server.register(fastifyJwt, {
 });
 server.register(fastifyCookie, {});
 
-async function permissionsDecorator (server: FastifyInstance) {
-
-  server.decorate("authenticate", async function(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      await request.jwtVerify()
-    } catch (err) {
-      reply.send(err)
-    }
-  })
-
-  server.decorate("checkHomePermissions", async function(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const { homeId } = request.params as { homeId?: string } || request.body as { homeId?: string };
-  
-      if (!homeId) {
-        return reply.status(401).send({error: "Insufficient permissions"});
-      }
-    } catch (err) {
-      reply.send(err)
-    }
-  })
-}
+server.decorate("authenticate", async function(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    await request.jwtVerify()
+  } catch (err) {
+    reply.send(err)
+  }
+});
 
 server.register(fastifyMongodb, { 
   url: config.dbConnectionUrl
-})
+});
 
-server.register(fastifyPlugin(permissionsDecorator));
 server.register(fastifyWebsocket);
 server.register(fastifyFormbody);
 server.register(fastifyStatic, {

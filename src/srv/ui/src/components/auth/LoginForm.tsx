@@ -8,7 +8,7 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import LoginIcon from '@mui/icons-material/Login';
 
-import { loginMutation } from '../api/auth';
+import { loginMutation } from '../../api/auth';
 import { useAuth } from '../../hooks/useAuth';
 
 type ErrorResponse = AxiosError & {

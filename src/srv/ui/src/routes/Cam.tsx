@@ -2,7 +2,7 @@ import { useState} from "react";
 import { useParams } from 'react-router-dom';
 import Container from '@mui/material/Container';
 import { CamFeed } from "../components/monitoring/CamFeed";
-import { useWebConfig } from "../components/api/general";
+import { useWebConfig } from "../api/general";
 import { useAuth } from "../hooks/useAuth";
 
 export const Cam = () => {

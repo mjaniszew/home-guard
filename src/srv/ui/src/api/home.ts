@@ -1,6 +1,6 @@
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import axios from 'axios';
-import { getCookieObject } from '../../utils/cookie';
+import { getCookieObject } from '../utils/cookie';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
@@ -25,10 +25,12 @@ export type UserHomeDataResponse = {
   tokens: HomeTokenResponse[]
 }
 
-const userHomes = async () => {
+const userHomes = async (fetchTokenData?: boolean) => {
   const { token } = getCookieObject('auth');
+  const url = `${BACKEND_URL}/api/homes${fetchTokenData ? '?tokenData=true': ''}`
+
   try {
-    const response = await axios.get(`${BACKEND_URL}/api/homes`, {
+    const response = await axios.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -39,10 +41,17 @@ const userHomes = async () => {
   }
 };
 
-export const useUserHomes = (): UseQueryResult<UserHomeDataResponse[], Error> => {
+export const useUserHomes = (fetchTokenData?: boolean): UseQueryResult<UserHomeDataResponse[], Error> => {
   return useQuery({ 
     queryKey: ['userhomes'], 
-    queryFn: () => userHomes() 
+    queryFn: () => userHomes(fetchTokenData)
+  });
+}
+
+export const useUserHomesWithTokens = (): UseQueryResult<UserHomeDataResponse[], Error> => {
+  return useQuery({ 
+    queryKey: ['userhomeswithtokens'], 
+    queryFn: () => userHomes(true)
   });
 }
 
@@ -75,7 +84,42 @@ export const tokenDeleteMutation = async ({ homeId, tokenId }: HomeTokenDeleteDa
         }
       }
     );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const homeCreateMutation = async ({ name }: {name: string}) => {
+  const { token, userId } = getCookieObject('auth');
+  try {
+    const response = await axios.post(
+      `${BACKEND_URL}/api/homes`,
+      { name, userId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      }
+    );
     return response.data as HomeTokenResponse;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const homeDeleteMutation = async ({ homeId }: {homeId: string}) => {
+  const { token } = getCookieObject('auth');
+  try {
+    const response = await axios.delete(
+      `${BACKEND_URL}/api/homes/${homeId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      }
+    );
+    return response.data;
   } catch (error) {
     throw error;
   }

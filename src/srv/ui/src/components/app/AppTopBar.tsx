@@ -10,11 +10,15 @@ import HomeIcon from '@mui/icons-material/Home';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
 
 import { useAuth } from '../../hooks/useAuth';
+import { useUserHome } from '../../hooks/useHome';
 
 export const AppTopBar = () => {
   const { auth, logout } = useAuth();
+  const { userHomes, selectedHome, selectHome } = useUserHome();
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -50,6 +54,25 @@ export const AppTopBar = () => {
           </Typography>
           {auth && (
             <div>
+              <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
+                <Select
+                  id="homeSelect"
+                  value={selectedHome || ''}
+                  onChange={(event) => {
+                    selectHome(event.target.value);
+                  }}
+                  label="Age"
+                >
+                  {userHomes.map((home) => (
+                    <MenuItem 
+                      key={home._id}
+                      value={home._id}
+                    >
+                      {home.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               <Button
                 size="large"
                 aria-label={`Logged in as: ${auth.username}`}

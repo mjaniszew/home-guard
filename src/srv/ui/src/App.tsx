@@ -7,6 +7,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Routes } from './routes/Routes.jsx';
 import { AuthProvider } from "./hooks/useAuth";
+import { HomeProvider } from './hooks/useHome.js';
 
 const queryClient = new QueryClient()
 
@@ -23,7 +24,9 @@ const App = () => {
       <Router>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <Routes />
+            <HomeProvider>
+              <Routes />
+            </HomeProvider>
           </AuthProvider>
         </QueryClientProvider>
       </Router>

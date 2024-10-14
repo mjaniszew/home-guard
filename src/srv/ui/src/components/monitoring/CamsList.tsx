@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff';
 import VideocamIcon from '@mui/icons-material/Videocam';
-import { useCams } from '../api/monitoring.js';
+import { useCams } from '../../api/monitoring.js';
 
 const CamsList = () => {
   const { isPending, isError, data, error } = useCams();

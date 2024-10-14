@@ -1,5 +1,6 @@
 import { useRoutes } from 'react-router-dom';
 import { AuthorizeRoute } from './AuthorizeRoute.js';
+import { NotFoundRoute } from './404.js';
 import { Layout } from './Layout.js';
 import { Home } from './Home.js';
 import { Dashboard } from './Dashboard.js';
@@ -10,6 +11,12 @@ import { Manage } from './Manage.js';
 
 const Routes = () => {
   const routes = useRoutes([
+    {
+      path: "*",
+      element: (
+        <NotFoundRoute />
+      )
+    },
     {
       path: "/",
       element: (

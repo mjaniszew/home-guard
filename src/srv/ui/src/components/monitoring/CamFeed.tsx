@@ -5,7 +5,7 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
-import { ConfigData } from '../api/general';
+import { ConfigData } from '../../api/general';
 import { AuthData } from '../../hooks/useAuth';
 
 interface CamFeedProps {

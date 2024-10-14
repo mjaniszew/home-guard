@@ -16,7 +16,7 @@ import AutorenewIcon from '@mui/icons-material/Autorenew';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 
-import { tokenCreateMutation } from '../api/home';
+import { tokenCreateMutation } from '../../api/home';
 
 interface CreateTokenDialogProps {
   open: boolean;
@@ -68,10 +68,8 @@ export const HomeTokenCreateDialog = ({ open, homeId, homeName, handleClose }: C
     <Dialog
       open={open}
       onClose={() => close()}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
     >
-      <DialogTitle id="alert-dialog-title">
+      <DialogTitle id="token-dialog-title">
         Create new Auth Token for: {homeName}
       </DialogTitle>
       <DialogContent>
@@ -127,7 +125,6 @@ export const HomeTokenCreateDialog = ({ open, homeId, homeName, handleClose }: C
         <Button 
           onClick={handleSubmit}
           disabled={!tokenName || !tokenValue}
-          autoFocus
         >Create</Button>
       </DialogActions>
     </Dialog>

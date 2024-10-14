@@ -13,8 +13,8 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { styled } from '@mui/material/styles';
 import { useCopyToClipboard } from 'usehooks-ts';
 
-import { HomeTokenResponse } from "../api/home.js"
-import { tokenDeleteMutation } from '../api/home.js';
+import { HomeTokenResponse } from "../../api/home.js"
+import { tokenDeleteMutation } from '../../api/home.js';
 import { HomeTokenCreateDialog } from './HomeTokenDialog.js';
 
 interface UserDetailsProps {
@@ -91,7 +91,7 @@ export const HomeTokens = ({ homeId, homeName, tokens, showTokenValues, refetchD
             />
           </ListItem>
         ))}
-        <ListItemButton onClick={() => setDialogOpen(true)}>
+        <ListItemButton key="createToken" onClick={() => setDialogOpen(true)}>
           <AddBoxIcon sx={{mx: 1}} />
           <ListItemText primary="Create Token" />
         </ListItemButton>
