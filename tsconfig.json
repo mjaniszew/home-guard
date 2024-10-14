@@ -20,6 +20,7 @@
   "exclude": [
     "node_modules",
     "src/**/public",
+    "src/**/ui",
     "typings/browser",
     "typings/browser.d.ts"
   ]
