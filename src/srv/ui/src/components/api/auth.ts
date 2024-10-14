@@ -9,6 +9,7 @@ interface LoginData {
 
 type AuthData = {
   username: string;
+  userId: string;
   token: string;
 }
 

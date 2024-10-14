@@ -4,6 +4,7 @@ import { useCookie } from "./useCookie";
 
 export type AuthData = {
   username: string | null,
+  userId: string | null,
   token: string | null
 }
 
@@ -13,10 +14,10 @@ interface AuthContextType {
   logout: () => void;
 }
 
-const initAuthState: AuthData = { username: null, token: null };
+const initAuthState: AuthData = { username: null, userId: null, token: null };
 
 const AuthContext = createContext<AuthContextType>({
-  auth: { username: null, token: null },
+  auth: { username: null, userId: null, token: null },
   authenticate: () => {},
   logout: () => {}
 });

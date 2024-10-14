@@ -23,10 +23,6 @@ export const AppTopBar = () => {
     logout();
   };
 
-  const handleHome = () => {
-    navigate('/');
-  };
-
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -45,7 +41,7 @@ export const AppTopBar = () => {
             color="inherit"
             aria-label="menu"
             sx={{ mr: 2 }}
-            onClick={handleHome}
+            onClick={() => {navigate('/')}}
           >
             <HomeIcon />
           </IconButton>
@@ -80,6 +76,7 @@ export const AppTopBar = () => {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
+                <MenuItem onClick={() => {navigate('/manage')}}>Manage</MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
               </Menu>
             </div>

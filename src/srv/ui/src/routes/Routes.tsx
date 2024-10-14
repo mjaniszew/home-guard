@@ -6,6 +6,7 @@ import { Dashboard } from './Dashboard.js';
 import { Login } from './Login.js';
 import { Logout } from './Logout.js';
 import { Cam } from './Cam.js';
+import { Manage } from './Manage.js';
 
 const Routes = () => {
   const routes = useRoutes([
@@ -38,6 +39,16 @@ const Routes = () => {
           </Layout>
         </AuthorizeRoute>
       )
+    },
+    {
+      path: "/manage",
+      element: (
+        <AuthorizeRoute>
+          <Layout>
+            <Manage />
+          </Layout>
+        </AuthorizeRoute>
+        )
     },
     {
       path: "/login",

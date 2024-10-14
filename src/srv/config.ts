@@ -5,6 +5,8 @@ dotenv.config();
 type ConfigType = {
   nodeEnv: string | undefined,
   connectionSecure: string | boolean,
+  dbConnectionUrl: string,
+  dbName: string,
   serverDomain: string,
   serverHost: string,
   serverPort: number,
@@ -12,14 +14,14 @@ type ConfigType = {
   streamReceiveInterval: number,
   clientsInterval: number,
   authSecret: string,
-  authStaticToken: string,
-  authUser: string | undefined,
-  authPwd: string | undefined
+  authStaticToken: string
 }
 
 const config: ConfigType = {
   nodeEnv: process.env.NODE_ENV,
   connectionSecure: process.env.CONNECTION_SECURE || false,
+  dbConnectionUrl: process.env.DB_CONNECTION_URL || 'mongodb://localhost:27017',
+  dbName: process.env.DB_NAME || 'homeguard',
   serverDomain: process.env.SRV_DOMAIN || 'localhost',
   serverHost: process.env.SRV_HOST || 'localhost:3000',
   serverPort: Number(process.env.SRV_PORT || 3000),
@@ -27,9 +29,7 @@ const config: ConfigType = {
   streamReceiveInterval: 200,
   clientsInterval: 10000,
   authSecret: process.env.AUTH_SECRET || 'defaultSecret',
-  authStaticToken: process.env.AUTH_STATIC_TOKEN || 'defaultStatic',
-  authUser: process.env.AUTH_USER,
-  authPwd: process.env.AUTH_PWD
+  authStaticToken: process.env.AUTH_STATIC_TOKEN || 'defaultStatic'
 };
 
 export { config, ConfigType };
