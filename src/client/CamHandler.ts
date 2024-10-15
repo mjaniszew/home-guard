@@ -26,6 +26,7 @@ enum STREAM_STATE {
 const CamHandler = class {
   wsConnection: WebSocket | null;
   clientId: string;
+  homeId: string;
   deviceId: string | null;
   devices: string[];
   registerUrl;
@@ -41,8 +42,9 @@ const CamHandler = class {
     this.framesReader = null;
     this.config = options.config;
     this.clientId = this.config.clientId;
+    this.homeId = this.config.clientHomeId;
     this.deviceId = this.config.defaultDeviceId;
-    this.registerUrl = `${this.config.connectionSecure ? 'wss' : 'ws'}://${this.config.serverHost}/api/monitoring/register-cam/${this.clientId}`;
+    this.registerUrl = `${this.config.connectionSecure ? 'wss' : 'ws'}://${this.config.serverHost}/api/monitoring/register-cam/${this.homeId}/${this.clientId}`;
     this.streamState = STREAM_STATE.STOP;
   }
 

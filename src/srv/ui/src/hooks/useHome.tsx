@@ -4,6 +4,7 @@ import { UserHomeDataResponse, useUserHomes } from "../api/home";
 interface HomesContextType {
   userHomes: UserHomeDataResponse[];
   selectedHome: string | null,
+  isLoading: boolean,
   selectHome: (id: string) => void;
   refreshData: () => void;
 }
@@ -11,12 +12,13 @@ interface HomesContextType {
 const HomeContext = createContext<HomesContextType>({
   userHomes: [],
   selectedHome: null,
+  isLoading: true,
   selectHome: () => {},
   refreshData: () => {}
 });
 
 export const HomeProvider = ({ children }: { children: React.ReactNode }) => {
-  const { data, refetch } = useUserHomes();
+  const { data, isLoading, refetch } = useUserHomes();
   const [ selectedHome, setSelectedHome ] = useState<string |null>(null);
 
   const selectHome = (id: string) => {
@@ -29,9 +31,10 @@ export const HomeProvider = ({ children }: { children: React.ReactNode }) => {
     () => ({
       userHomes: data || [],
       selectedHome: selectedHome || (data ? data[0]?._id : null),
+      isLoading,
       selectHome,
       refreshData
-    }), [data, selectedHome]
+    }), [data, selectedHome, isLoading]
   );
 
   return (

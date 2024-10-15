@@ -15,6 +15,8 @@ export type WebConnectionType = {
 
 export type CamConnectionType = {
   deviceId: string,
+  homeId: string,
+  tokens: string[],
   socket: WebSocket,
   active: boolean,
   authenticated: boolean,
@@ -43,9 +45,11 @@ const ClientsHandler = class {
     this.logger = logger;
   }
   
-  onCamRegister = (socket: WebSocket, deviceId: string) => {
+  onCamRegister = (socket: WebSocket, deviceId: string, homeId: string, tokens: string[]) => {
     this.camConnections.push({
       deviceId,
+      homeId,
+      tokens,
       socket,
       active: true,
       authenticated: false,
@@ -76,9 +80,9 @@ const ClientsHandler = class {
     return Boolean(webClient && webClient.authenticated);
   }
   
-  authenticateCamWs = (deviceId: string, staticToken: string, clientToken: string): boolean => {
+  authenticateCamWs = (deviceId: string, staticToken: string): boolean => {
     const camClient = this.camConnections.find(connection => connection.deviceId === deviceId);
-    if (camClient && !!staticToken && staticToken === clientToken) {
+    if (camClient && !!staticToken && camClient.tokens.find(tkn => tkn === staticToken)) {
       camClient.authenticated = true;
     }
     return Boolean(camClient && camClient.authenticated);

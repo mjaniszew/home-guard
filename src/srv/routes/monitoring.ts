@@ -2,6 +2,7 @@ import {
   FastifyInstance,
   RouteShorthandOptions,
 } from 'fastify';
+import { ObjectId } from '@fastify/mongodb';
 
 import { 
   WebConnectionType,
@@ -16,6 +17,7 @@ type RouteOptions = RouteShorthandOptions & {
 };
 
 type RegisterParams = {
+  homeId?: string,
   deviceId?: string,
   clientId?: string
 };
@@ -31,16 +33,24 @@ enum WS_MESSAGES {
 async function routes (fastify: FastifyInstance, options: RouteOptions) {
   const { config, clientsHandler } = options;
 
-  fastify.get('/api/monitoring/register-cam/:deviceId', { websocket: true }, (socket, req) => { 
+  fastify.get('/api/monitoring/register-cam/:homeId/:deviceId', { websocket: true }, async (socket, req) => { 
     try {
-      const { deviceId } = req.params as RegisterParams;
+      const { homeId, deviceId } = req.params as RegisterParams;
 
-      if (!deviceId) {
+      if (!deviceId || !homeId) {
         return;
       }
+
+      const db = fastify.mongo.client.db(config.dbName);
+      const homeTokens = await db.collection('tokens').find(
+        { homeId: new ObjectId(homeId) },
+        { projection: { '_id': 0, value: 1} }
+      ).toArray();
       
-      clientsHandler.onCamRegister(socket, deviceId);
-      fastify.log.info(`Cam client connected: ${deviceId}`); 
+      clientsHandler.onCamRegister(
+        socket, deviceId, homeId, homeTokens.map(hm => hm.value)
+      );
+      fastify.log.info(`Cam client connected: ${deviceId} / home: ${homeId}`); 
 
       const waitForAuth = setTimeout(() => { 
         clientsHandler.forceCloseCamWs(deviceId);
@@ -50,9 +60,7 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
         try {
           const parsedEvent = JSON.parse(event);
           fastify.log.info(`Server receivied event: ${parsedEvent.action} from ${deviceId}`);
-          if (!clientsHandler.authenticateCamWs(
-            deviceId, parsedEvent.staticToken, config.authStaticToken
-          )) { 
+          if (!clientsHandler.authenticateCamWs(deviceId, parsedEvent.staticToken)) { 
             return;
           }
 

@@ -11,6 +11,7 @@ type ConfigType = {
   clientHost: string,
   clientPort: number,
   clientId: string,
+  clientHomeId: string,
   streamSendInterval: number,
   defaultDeviceId: string | null,
   authStaticToken: string | undefined,
@@ -25,9 +26,10 @@ const config: ConfigType = {
   clientHost: process.env.CLIENT_HOST || 'localhost:3001',
   clientPort: Number(process.env.CLIENT_PORT) || 3001,
   clientId: process.env.CLIENT_ID || 'cam01',
+  clientHomeId: process.env.CLIENT_HOME_ID || 'defaultHome01',
   streamSendInterval: 500,
   defaultDeviceId: process.env.CLIENT_DEFAULT_DEVICE || null,
-  authStaticToken: process.env.AUTH_STATIC_TOKEN,
+  authStaticToken: process.env.CLIENT_STATIC_TOKEN,
 };
 
 export { config, ConfigType };

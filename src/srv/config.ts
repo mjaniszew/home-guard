@@ -13,8 +13,7 @@ type ConfigType = {
   serverCorsOrigin: string,
   streamReceiveInterval: number,
   clientsInterval: number,
-  authSecret: string,
-  authStaticToken: string
+  authSecret: string
 }
 
 const config: ConfigType = {
@@ -28,8 +27,7 @@ const config: ConfigType = {
   serverCorsOrigin: process.env.SRV_CORS_ORIGIN || 'http://localhost:5173',
   streamReceiveInterval: 200,
   clientsInterval: 10000,
-  authSecret: process.env.AUTH_SECRET || 'defaultSecret',
-  authStaticToken: process.env.AUTH_STATIC_TOKEN || 'defaultStatic'
+  authSecret: process.env.AUTH_SECRET || 'defaultSecret'
 };
 
 export { config, ConfigType };
