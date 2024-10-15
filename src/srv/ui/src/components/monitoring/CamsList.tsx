@@ -11,20 +11,22 @@ import Chip from '@mui/material/Chip';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import { useCams } from '../../api/monitoring.js';
+import { useUserHomes } from '../../api/home.js';
 
 const CamsList = () => {
-  const { isPending, isError, data, error } = useCams();
+  const cams = useCams();
+  const userHomes = useUserHomes();
   const navigate = useNavigate();
   const onCamSelect = (camId: string) => {
     navigate(`/cam/${camId}`);
   }
 
-  if (isPending) {
+  if (cams.isPending || userHomes.isPending) {
     return <span>Loading cams data...</span>;
   }
 
-  if (isError) {
-    return <span>Error: {error.message}</span>
+  if (cams.isError || userHomes.isError) {
+    return <span>Error: {cams.error?.message || userHomes.error?.message}</span>
   }
 
   return (
@@ -35,7 +37,7 @@ const CamsList = () => {
         </Typography>
         <Table>
           <TableBody>
-            {data?.map((camera, index) => (
+            {cams.data?.map((camera, index) => (
               <TableRow 
                 hover
                 sx={{ cursor: 'pointer' }}

@@ -7,6 +7,7 @@ import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import { ConfigData } from '../../api/general';
 import { AuthData } from '../../hooks/useAuth';
+import { useUserHome } from '../../hooks/useHome';
 
 interface CamFeedProps {
   camId?: string,
@@ -25,8 +26,9 @@ enum WS_MESSAGES {
 }
 
 const CamFeed = ({ camId, auth, config, fullPage, toggleFullPage }: CamFeedProps) => {
-  const [ webSocketConnection, setWebSocketConnection ] = useState<WebSocket>();
+  const [ webSocketConnection, setWebSocketConnection ] = useState<WebSocket | null>(null);
   const [ feedData, setFeedData ] = useState<string>('');
+  const userHome = useUserHome();
   const { connectionSecure, serverHost } = config;
 
   const sendPlayAction = () => {
@@ -46,14 +48,16 @@ const CamFeed = ({ camId, auth, config, fullPage, toggleFullPage }: CamFeedProps
   useEffect(() => {
     const clientId = `web-${Math.floor(Math.random() * 10000)}`;
     const socket = new WebSocket(
-      `${connectionSecure? 'wss' : 'ws'}://${serverHost}/api/monitoring/register-webclient/${clientId}/${camId}`,
+      `${connectionSecure? 'wss' : 'ws'}://${serverHost}/api/monitoring/register-webclient/${userHome.selectedHome}/${clientId}/${camId}`,
     );
     setWebSocketConnection(socket);
 
     return () => {
-      socket.close();
+      if (socket?.readyState !== socket?.CONNECTING) {
+        socket?.close();
+      }
     };
-  }, [connectionSecure, serverHost]);
+  }, [connectionSecure, serverHost, userHome]);
 
   useEffect(() => {
     if (!webSocketConnection) return;

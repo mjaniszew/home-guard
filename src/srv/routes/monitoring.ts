@@ -33,7 +33,9 @@ enum WS_MESSAGES {
 async function routes (fastify: FastifyInstance, options: RouteOptions) {
   const { config, clientsHandler } = options;
 
-  fastify.get('/api/monitoring/register-cam/:homeId/:deviceId', { websocket: true }, async (socket, req) => { 
+  fastify.get('/api/monitoring/register-cam/:homeId/:deviceId', { 
+    websocket: true 
+  }, async (socket, req) => { 
     try {
       const { homeId, deviceId } = req.params as RegisterParams;
 
@@ -96,19 +98,31 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
     }
   })
 
-  fastify.get('/api/monitoring/register-webclient/:clientId/:deviceId', { 
+  fastify.get('/api/monitoring/register-webclient/:homeId/:clientId/:deviceId', { 
       websocket: true,
-    }, (socket, req) => {
+    }, async (socket, req) => {
     try {
-      const { clientId, deviceId } = req.params as RegisterParams;
+      const { clientId, deviceId, homeId } = req.params as RegisterParams;
       let token = null;
+      let userId = null;
 
       if (req.headers.cookie) {
         const cookies = fastify.parseCookie(req.headers.cookie);
         token = JSON.parse(cookies.auth)?.token;
+        userId = JSON.parse(cookies.auth)?.userId;
       }
       
-      if (!clientId || !deviceId || !fastify.jwt.verify(token)) {
+      if (!clientId || !deviceId || !homeId || !fastify.jwt.verify(token)) {
+        return;
+      }
+
+      const db = fastify.mongo.client.db(config.dbName);
+      const userHomes = await db.collection('homes').find({
+        userId: new ObjectId(userId)
+      }).toArray();
+
+      const userIsOwner = userHomes.find((home) => home._id.toString() === homeId)
+      if (!userIsOwner) {
         return;
       }
 
@@ -123,7 +137,11 @@ async function routes (fastify: FastifyInstance, options: RouteOptions) {
         try {
           const parsedEvent = JSON.parse(event);
           fastify.log.info(`Server receivied event: ${parsedEvent.action} from ${clientId}`);
-          if (!clientsHandler.authenticateWebWs(clientId, parsedEvent.token)) { return }
+          
+          if (
+            !clientsHandler.authenticateWebWs(clientId, parsedEvent.token) ||
+            !fastify.jwt.verify(parsedEvent.token)
+          ) { return }
 
           if (parsedEvent.action === WS_MESSAGES.REGISTER_AUTH) {
             clearTimeout(waitForAuth);

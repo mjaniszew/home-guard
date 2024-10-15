@@ -78,14 +78,14 @@ export const HomeTokenCreateDialog = ({ open, homeId, homeName, handleClose }: C
         noValidate
         autoComplete="off"
       >
-        <DialogContentText>
-          Provided token value can be used in your devices later on in order to send data for your home
-        </DialogContentText>
         <Stack spacing={2}>
+          <DialogContentText>
+            Provided token value can be used in your devices later on in order to send data for your home
+          </DialogContentText>
           <TextField 
             id="tokenName"
             label="Name"
-            variant="standard"
+            variant="outlined"
             onChange={(event) => setTokenName(event.target.value)}
             error={!!error}
             required
@@ -93,7 +93,7 @@ export const HomeTokenCreateDialog = ({ open, homeId, homeName, handleClose }: C
           <TextField
             id="tokenValue"
             label="Value"
-            variant="standard"
+            variant="outlined"
             onChange={(event) => setTokenValue(event.target.value)}
             value={tokenValue}
             helperText={error}

@@ -66,14 +66,14 @@ export const HomeCreateDialog = ({ open, handleClose }: CreateHomeDialogProps) =
         noValidate
         autoComplete="off"
       >
-        <DialogContentText>
-          Create new Home and assign access tokens in order to add and manage your devices.
-        </DialogContentText>
         <Stack spacing={2}>
+          <DialogContentText>
+            Create new Home and assign access tokens in order to add and manage your devices.
+          </DialogContentText>
           <TextField 
             id="homeName"
             label="Name"
-            variant="standard"
+            variant="outlined"
             onChange={(event) => setHomeName(event.target.value)}
             error={!!error}
             required

@@ -58,10 +58,11 @@ export const AppTopBar = () => {
                 <Select
                   id="homeSelect"
                   value={selectedHome || ''}
+                  variant="standard"
+                  size="small"
                   onChange={(event) => {
                     selectHome(event.target.value);
                   }}
-                  label="Age"
                 >
                   {userHomes.map((home) => (
                     <MenuItem 

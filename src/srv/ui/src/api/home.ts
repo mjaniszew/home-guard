@@ -41,10 +41,10 @@ const userHomes = async (fetchTokenData?: boolean) => {
   }
 };
 
-export const useUserHomes = (fetchTokenData?: boolean): UseQueryResult<UserHomeDataResponse[], Error> => {
+export const useUserHomes = (): UseQueryResult<UserHomeDataResponse[], Error> => {
   return useQuery({ 
     queryKey: ['userhomes'], 
-    queryFn: () => userHomes(fetchTokenData)
+    queryFn: () => userHomes()
   });
 }
 
