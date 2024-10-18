@@ -1,4 +1,3 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import axios from 'axios';
 import { getCookieObject } from '../utils/cookie';
 
@@ -25,7 +24,7 @@ export type UserHomeDataResponse = {
   tokens: HomeTokenResponse[]
 }
 
-const userHomes = async (fetchTokenData?: boolean) => {
+export const getUserHomes = async (fetchTokenData?: boolean) => {
   const { token } = getCookieObject('auth');
   const url = `${BACKEND_URL}/api/homes${fetchTokenData ? '?tokenData=true': ''}`
 
@@ -40,20 +39,6 @@ const userHomes = async (fetchTokenData?: boolean) => {
     throw error;
   }
 };
-
-export const useUserHomes = (): UseQueryResult<UserHomeDataResponse[], Error> => {
-  return useQuery({ 
-    queryKey: ['userhomes'], 
-    queryFn: () => userHomes()
-  });
-}
-
-export const useUserHomesWithTokens = (): UseQueryResult<UserHomeDataResponse[], Error> => {
-  return useQuery({ 
-    queryKey: ['userhomeswithtokens'], 
-    queryFn: () => userHomes(true)
-  });
-}
 
 export const tokenCreateMutation = async ({ name, value, homeId }: HomeTokenCreateData) => {
   const { token } = getCookieObject('auth');

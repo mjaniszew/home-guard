@@ -14,7 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { HomeCreateDialog } from './HomeCreateDialog';
 import { HomeTokens } from './HomeTokens.js';
-import { useUserHomesWithTokens, useUserHomes} from '../../api/home.js';
+import { useUserHomesWithTokens, useUserHomes} from '../../hooks/useHome.js';
 import { Button } from '@mui/material';
 import { homeDeleteMutation } from '../../api/home.js';
 

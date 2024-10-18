@@ -4,11 +4,36 @@ import { getCookieObject } from '../utils/cookie';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
-type HomeSensorResponse = {
+export enum SENSOR_TYPES {
+  TEMPERATURE = 'TEMPERATURE',
+  HUMIDITY = 'HUMIDITY',
+  MOTION = 'MOTION',
+  FLOOD = 'FLOOD',
+  OTHER_NUMERICAL_MEASURE = 'OTHER_NUMERICAL_MEASURE',
+  OTHER_TEXT_MEASURE = 'OTHER_TEXTL_MEASURE'
+};
+
+export type HomeSensorResponse = {
   _id: string,
   name: string,
   type: string,
   homeId: string
+};
+
+export type HomeSensorCurrentResponse = {
+  _id: string,
+  name: string,
+  type: string,
+  homeId: string,
+  lastReading: SensorReadingResponse[]
+};
+
+type SensorReadingResponse = {
+  _id: string,
+  sensorId: string,
+  homeId: string,
+  value: string,
+  timestamp: number
 };
 
 type SensorCreateData = {
@@ -21,9 +46,13 @@ type SensorDeleteData = {
   sensorId: string
 };
 
-const getHomeSensors = async (homeId: string) => {
+export const getHomeSensors = async (homeId: string | null) => {
   const { token } = getCookieObject('auth');
-  const url = `${BACKEND_URL}/api/sensors?home=${homeId}`
+  const url = `${BACKEND_URL}/api/sensors?homeId=${homeId}`
+
+  if (!homeId) {
+    return [] as HomeSensorResponse[];
+  }
 
   try {
     const response = await axios.get(url, {
@@ -35,13 +64,6 @@ const getHomeSensors = async (homeId: string) => {
   } catch (error) {
     throw error;
   }
-};
-
-export const useHomeSensors = (homeId: string): UseQueryResult<HomeSensorResponse[], Error> => {
-  return useQuery({ 
-    queryKey: ['homesensors'], 
-    queryFn: () => getHomeSensors(homeId)
-  });
 };
 
 export const sensorCreateMutation = async ({ name, type, homeId }: SensorCreateData) => {
@@ -79,9 +101,9 @@ export const sensorDeleteMutation = async ({ sensorId }: SensorDeleteData) => {
   }
 };
 
-const getHomeSensorsReadings = async (homeId: string) => {
+export const getHomeSensorsReadings = async (homeId: string) => {
   const { token } = getCookieObject('auth');
-  const url = `${BACKEND_URL}/api/sensors/readings?home=${homeId}`
+  const url = `${BACKEND_URL}/api/sensors/readings?homeId=${homeId}`
 
   try {
     const response = await axios.get(url, {
@@ -95,9 +117,18 @@ const getHomeSensorsReadings = async (homeId: string) => {
   }
 };
 
-export const useHomeSensorsReadings = (homeId: string): UseQueryResult<HomeSensorResponse[], Error> => {
-  return useQuery({ 
-    queryKey: ['homesensorsreadings'],
-    queryFn: () => getHomeSensorsReadings(homeId)
-  });
+export const getHomeSensorsCurrentReadings = async (homeId: string) => {
+  const { token } = getCookieObject('auth');
+  const url = `${BACKEND_URL}/api/sensors/readings/current?homeId=${homeId}`
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data as HomeSensorCurrentResponse[];
+  } catch (error) {
+    throw error;
+  }
 };

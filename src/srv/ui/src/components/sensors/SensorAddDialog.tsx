@@ -16,7 +16,7 @@ import { FormControl } from '@mui/material';
 import Select from '@mui/material/Select';
 import InputLabel from '@mui/material/InputLabel';
 
-import { sensorCreateMutation } from '../../api/sensors';
+import { sensorCreateMutation, SENSOR_TYPES } from '../../api/sensors';
 
 interface CreateHomeDialogProps {
   homeId: string | null;
@@ -28,15 +28,6 @@ type SensorData = {
   name: string;
   homeId: string;
   type: string;
-};
-
-enum SENSOR_TYPES {
-  TEMPERATURE = 'TEMPERATURE',
-  HUMIDITY = 'HUMIDITY',
-  MOTION = 'MOTION',
-  FLOOD = 'FLOOD',
-  OTHER_NUMERICAL_MEASURE = 'OTHER_NUMERICAL_MEASURE',
-  OTHER_TEXT_MEASURE = 'OTHER_TEXTL_MEASURE'
 };
 
 type ErrorResponse = AxiosError & {

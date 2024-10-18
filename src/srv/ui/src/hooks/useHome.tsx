@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useMemo } from "react";
-import { UserHomeDataResponse, useUserHomes } from "../api/home";
+import { UserHomeDataResponse, getUserHomes } from "../api/home";
+
+import { useQuery, UseQueryResult } from '@tanstack/react-query';
 
 interface HomesContextType {
   userHomes: UserHomeDataResponse[];
@@ -16,6 +18,21 @@ const HomeContext = createContext<HomesContextType>({
   selectHome: () => {},
   refreshData: () => {}
 });
+
+export const useUserHomes = (): UseQueryResult<UserHomeDataResponse[], Error> => {
+  return useQuery({ 
+    queryKey: ['userhomes'], 
+    queryFn: () => getUserHomes()
+  });
+}
+
+export const useUserHomesWithTokens = (): UseQueryResult<UserHomeDataResponse[], Error> => {
+  return useQuery({ 
+    queryKey: ['userhomeswithtokens'], 
+    queryFn: () => getUserHomes(true)
+  });
+}
+
 
 export const HomeProvider = ({ children }: { children: React.ReactNode }) => {
   const { data, isLoading, refetch } = useUserHomes();

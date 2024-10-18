@@ -1,45 +1,46 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableRow from '@mui/material/TableRow';
-import Link from '@mui/material/Link';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid2';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import Paper from '@mui/material/Paper';
 
-
-import { useUserHome } from '../../hooks/useHome.js';
 import { Stack } from '@mui/material';
 import { SensorAddDialog } from './SensorAddDialog.js';
+import { SensorsList } from './SensorsList.js';
 
+import { useHomeSensorsCurrentReadings } from '../../hooks/useSensors';
 
-export const Sensors = () => {
+interface SensorsProps {
+  homeId: string;
+};
+
+export const Sensors = ({ homeId }: SensorsProps) => {
   const [ sensorDialogOpen, setSensorDialogOpen ] = useState(false);
-  const userHome = useUserHome();
+  const homeSensors = useHomeSensorsCurrentReadings(homeId);
 
   const refreshData = () => {
-
+    homeSensors.refetch();
   }
 
-  const onModalClose = () => {
+  const onModalClose = (refresh?: boolean) => {
     setSensorDialogOpen(false);
+    if (refresh) {
+      refreshData();
+    }
   }
 
   return (
     <Card>
-      {!userHome.isLoading && <SensorAddDialog 
-        homeId={userHome.selectedHome}
+      <SensorAddDialog 
+        homeId={homeId}
         open={sensorDialogOpen}
         handleClose={onModalClose}
-      />}
+      />
       <CardContent>
         <Stack spacing={2}>
           <Grid container spacing={2}>
@@ -56,10 +57,11 @@ export const Sensors = () => {
               </Tooltip>
             </Grid>
           </Grid>
-          <Table>
-            <TableBody>
-            </TableBody>
-          </Table>
+          <Paper elevation={4}>
+            <SensorsList
+              homeSensors={homeSensors.data || []}
+            />
+          </Paper>
           <Button 
             variant="outlined"
             onClick={() => setSensorDialogOpen(true)}

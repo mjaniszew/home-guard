@@ -61,7 +61,7 @@ export const homesRoutes = async (fastify: FastifyInstance, options: RouteOption
       const { tokenData } = await request.query as HomesQueryString;
 
       const db = fastify.mongo.client.db(config.dbName);
-      const collection = db.collection(tokenData ? 'homesWithTokens' : 'homes'); 
+      const collection = db.collection(tokenData ? 'homes_with_tokens' : 'homes'); 
       const homesData = await collection.find({
         userId: new ObjectId(userId)
       }).toArray();
