@@ -28,10 +28,10 @@ export const Sensor = () => {
       <Box sx={{ my: 2 }}>
         <Stack spacing={2}>
           <SensorDetails 
-            sensorData={sensorDetails.data}
+            sensorData={sensorDetails.data || []}
           />
           <SensorReadings 
-            sensorReadings={sensorReadings.data}
+            sensorReadings={sensorReadings.data || []}
             readingLimit={readingLimit}
           />
         </Stack>

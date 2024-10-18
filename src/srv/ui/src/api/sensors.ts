@@ -1,4 +1,3 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import axios from 'axios';
 import { getCookieObject } from '../utils/cookie';
 

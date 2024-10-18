@@ -24,12 +24,6 @@ interface CreateHomeDialogProps {
   handleClose: (refresh?: boolean) => void;
 };
 
-type SensorData = {
-  name: string;
-  homeId: string;
-  type: string;
-};
-
 type ErrorResponse = AxiosError & {
   data: {
     error: string
@@ -96,6 +90,7 @@ export const SensorAddDialog = ({ open, homeId, handleClose }: CreateHomeDialogP
             label="Name"
             variant="outlined"
             onChange={(event) => setSensorName(event.target.value)}
+            error={Boolean(error)}
             required
           />
           <FormControl>
@@ -106,6 +101,7 @@ export const SensorAddDialog = ({ open, homeId, handleClose }: CreateHomeDialogP
               labelId="sensorType-label"
               label="Type"
               onChange={(event) => setSensorType(event.target.value)}
+              error={Boolean(error)}
               required
             >
             {sensorTypes.map((type) => (
