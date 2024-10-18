@@ -6,7 +6,7 @@ import { useWebConfig } from "../api/general";
 import { useAuth } from "../hooks/useAuth";
 
 export const Cam = () => {
-  const { id } = useParams();
+  const { camId } = useParams();
   const { auth } = useAuth();
   const config = useWebConfig();
   const [ fullPage, setFullPage ] = useState(false);
@@ -29,7 +29,7 @@ export const Cam = () => {
       sx={{my: 2}}
     >
       <CamFeed 
-        camId={id}
+        camId={camId}
         auth={auth}
         config={config.data} 
         fullPage={fullPage}

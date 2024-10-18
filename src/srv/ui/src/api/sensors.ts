@@ -28,7 +28,7 @@ export type HomeSensorCurrentResponse = {
   lastReading: SensorReadingResponse[]
 };
 
-type SensorReadingResponse = {
+export type SensorReadingResponse = {
   _id: string,
   sensorId: string,
   homeId: string,
@@ -48,7 +48,7 @@ type SensorDeleteData = {
 
 export const getHomeSensors = async (homeId: string | null) => {
   const { token } = getCookieObject('auth');
-  const url = `${BACKEND_URL}/api/sensors?homeId=${homeId}`
+  const url = `${BACKEND_URL}/api/sensors?homeId=${homeId}`;
 
   if (!homeId) {
     return [] as HomeSensorResponse[];
@@ -61,6 +61,50 @@ export const getHomeSensors = async (homeId: string | null) => {
       },
     });
     return response.data as HomeSensorResponse[];
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSensorDetails = async (sensorId: string) => {
+  const { token } = getCookieObject('auth');
+  const url = `${BACKEND_URL}/api/sensors/${sensorId}`;
+
+  if (!sensorId) {
+    return [] as HomeSensorResponse[];
+  }
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data as HomeSensorResponse[];
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSensorReadings = async (sensorId: string, limit?: number) => {
+  const { token } = getCookieObject('auth');
+  let url = `${BACKEND_URL}/api/sensors/${sensorId}/readings`;
+
+  if (!sensorId) {
+    return [] as SensorReadingResponse[];
+  }
+
+  if (limit) {
+    url = `${url}?limit=${limit}`;
+  }
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data as SensorReadingResponse[];
   } catch (error) {
     throw error;
   }

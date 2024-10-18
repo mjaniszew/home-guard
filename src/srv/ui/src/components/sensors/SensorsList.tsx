@@ -15,13 +15,14 @@ interface SensorsListProps {
 };
 
 export const SensorsList = ({ homeSensors }: SensorsListProps) => {
+  const navigate = useNavigate();
 
   return homeSensors.length ? (
     <Table>
       <TableHead>
         <TableRow>
           <TableCell>Name</TableCell>
-          <TableCell align="right">Current Reading</TableCell>
+          <TableCell align="right">Last Reading</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -32,10 +33,11 @@ export const SensorsList = ({ homeSensors }: SensorsListProps) => {
             key={index} 
             onClick={(event) => {
               event.preventDefault();
+              navigate(`/sensor/${sensor._id}`);
             }
           }>
             <TableCell scope="row">
-              <Link href={`/sensorReadings/${sensor.name}`}>
+              <Link href={`/sensor/${sensor._id}`}>
                 {sensor.name}
               </Link>
             </TableCell>

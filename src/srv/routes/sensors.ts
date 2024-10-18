@@ -41,6 +41,14 @@ type SensorsQueryString = {
   homeId: string
 };
 
+type SensorRequestParams = {
+  sensorId: string
+};
+
+type SensorQueryParams = {
+  limit?: number
+};
+
 export const sensorsRoutes = async (fastify: FastifyInstance, options: RouteOptions) => {
   const { config } = options;
 
@@ -176,7 +184,7 @@ export const sensorsRoutes = async (fastify: FastifyInstance, options: RouteOpti
 
       const tokenData = await db.collection('tokens').findOne({
         value: token
-      })  as WithId<SensorData>;
+      }) as WithId<SensorData>;
 
       const sensorDetails = await db.collection('sensors').findOne({
         _id: new ObjectId(sensorId)
@@ -206,5 +214,72 @@ export const sensorsRoutes = async (fastify: FastifyInstance, options: RouteOpti
       fastify.log.error(error);
     }
   })
-  
+
+  fastify.get('/api/sensors/:sensorId', {
+    onRequest: [fastify.authenticate]
+  }, async (request, reply) => {
+    try {
+      const { userId } = request.user;
+      const { sensorId } = await request.params as SensorRequestParams;
+
+      const db = fastify.mongo.client.db(config.dbName);
+
+      const userHomes = await db.collection('homes').find({
+        userId: new ObjectId(userId)
+      }).toArray();
+
+      const sensorData = await db.collection('sensors').findOne({
+        _id: new ObjectId(sensorId)
+      }) as WithId<SensorData>;
+
+      const userIsOwnerOfSensor = userHomes.find(
+        (home) => home._id.toString() === sensorData.homeId.toString()
+      )
+
+      if (!userIsOwnerOfSensor) {
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
+
+      return reply.send(sensorData);
+    } catch (error) {
+      fastify.log.error(error);
+    }
+  })
+
+  fastify.get('/api/sensors/:sensorId/readings', {
+    onRequest: [fastify.authenticate]
+  }, async (request, reply) => {
+    try {
+      const { userId } = request.user;
+      const { sensorId } = await request.params as SensorRequestParams;
+      const { limit } = await request.query as SensorQueryParams;
+
+      const db = fastify.mongo.client.db(config.dbName);
+
+      const userHomes = await db.collection('homes').find({
+        userId: new ObjectId(userId)
+      }).toArray();
+
+      const sensorData = await db.collection('sensors').findOne({
+        _id: new ObjectId(sensorId)
+      }) as WithId<SensorData>;
+
+      const userIsOwnerOfSensor = userHomes.find(
+        (home) => home._id.toString() === sensorData.homeId.toString()
+      )
+
+      if (!userIsOwnerOfSensor) {
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
+      
+      const sensorReadings = await db.collection('sensors_readings').find({
+        sensorId: new ObjectId(sensorId)
+      }).sort({ timestamp: -1 }).limit(Number(limit) || 100).toArray();
+
+      return reply.send(sensorReadings);
+    } catch (error) {
+      fastify.log.error(error);
+    }
+  })
+
 }
