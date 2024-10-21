@@ -11,11 +11,12 @@ import Checkbox from '@mui/material/Checkbox';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import Button from '@mui/material/Button';
 
 import { HomeCreateDialog } from './HomeCreateDialog';
+import { ConfirmDialog } from '../dialogs/ConfirmDialog.js';
 import { HomeTokens } from './HomeTokens.js';
 import { useUserHomesWithTokens, useUserHomes} from '../../hooks/useHome.js';
-import { Button } from '@mui/material';
 import { homeDeleteMutation } from '../../api/home.js';
 
 export const HomeSettings = () => {
@@ -23,6 +24,9 @@ export const HomeSettings = () => {
   const userHomesApi = useUserHomes();
   const [ homeDialogOpen, setHomeDialogOpen ] = useState(false);
   const [ showTokenValues, setShowTokenValues ] = useState(false);
+  const [ deleteHomeDialogOpen, setDeleteHomeDialogOpen ] = useState(false);
+  const [ deleteHomeText, setDeleteHomeText ] = useState<string>();
+  const [ deleteHomeId, setDeleteHomeId ] = useState<string | null>(null);
 
   const onModalClose = (refresh?: boolean) => {
     setHomeDialogOpen(false);
@@ -39,8 +43,18 @@ export const HomeSettings = () => {
     }
   });
 
-  const handleDeleteHome = async (homeId: string) => {
-    await deleteMutation.mutateAsync({ homeId });
+  const handleDeleteHome = async (homeId: string, homeName: string) => {
+    setDeleteHomeId(homeId);
+    setDeleteHomeText(`Confirm to delete home: ${homeName}. It will also delete all assigned tokens`);
+    setDeleteHomeDialogOpen(true);
+  }
+
+  const handleDeleteHomeDialog = async (confirm?: boolean) => {
+    setDeleteHomeDialogOpen(false);
+    if (confirm && deleteHomeId) {
+      await deleteMutation.mutateAsync({ homeId: deleteHomeId });
+    }
+    setDeleteHomeId(null);
   }
 
   if (userHomesWithTokensApi.isPending) {
@@ -58,6 +72,12 @@ export const HomeSettings = () => {
           open={homeDialogOpen}
           handleClose={onModalClose}
         />
+        <ConfirmDialog
+          key="homeDeleteDialog"
+          warningText={deleteHomeText}
+          handleClose={handleDeleteHomeDialog}
+          open={deleteHomeDialogOpen}
+        />
         <Typography variant="h5" component="div">
           Home Details
         </Typography>
@@ -74,7 +94,7 @@ export const HomeSettings = () => {
               </Grid>
               <Grid size={1}>
                 <Tooltip title="Delete token">
-                  <IconButton onClick={() => handleDeleteHome(home._id)} edge="start">
+                  <IconButton onClick={() => handleDeleteHome(home._id, home.name)} edge="start">
                     <DeleteIcon />
                   </IconButton>
                 </Tooltip>

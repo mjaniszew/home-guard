@@ -131,7 +131,7 @@ export const sensorDeleteMutation = async ({ sensorId }: SensorDeleteData) => {
   const { token } = getCookieObject('auth');
   try {
     const response = await axios.delete(
-      `${BACKEND_URL}/api/sensor/${sensorId}`,
+      `${BACKEND_URL}/api/sensors/${sensorId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

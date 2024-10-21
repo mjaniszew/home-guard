@@ -27,6 +27,11 @@ export const AppTopBar = () => {
     logout();
   };
 
+  const handleManage = () => {
+    setAnchorEl(null);
+    navigate('/manage')
+  };
+
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -62,6 +67,7 @@ export const AppTopBar = () => {
                   size="small"
                   onChange={(event) => {
                     selectHome(event.target.value);
+                    navigate('/');
                   }}
                 >
                   {userHomes.map((home) => (
@@ -101,7 +107,7 @@ export const AppTopBar = () => {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <MenuItem onClick={() => {navigate('/manage')}}>Manage</MenuItem>
+                  <MenuItem onClick={handleManage}>Manage</MenuItem>
                   <MenuItem onClick={handleLogout}>Logout</MenuItem>
                 </Menu>
               )}

@@ -110,6 +110,18 @@ export const homesRoutes = async (fastify: FastifyInstance, options: RouteOption
         return reply.status(401).send({ error: 'Unauthorized' });
       }
 
+      const homeSensors = await db.collection('sensors').find({
+        homeId: new ObjectId(homeId)
+      }).toArray();
+
+      await db.collection('sensors_readings').deleteMany({
+        sensorId: {$in: homeSensors.map(sensor => sensor._id)}
+      });
+
+      await db.collection('sensors').deleteMany({
+        _id: {$in: homeSensors.map(sensor => sensor._id)}
+      });
+
       await db.collection('tokens').deleteMany(
         { 'homeId': new ObjectId(homeId) }, 
       );

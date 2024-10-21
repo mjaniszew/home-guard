@@ -16,6 +16,7 @@ import { useCopyToClipboard } from 'usehooks-ts';
 import { HomeTokenResponse } from "../../api/home.js"
 import { tokenDeleteMutation } from '../../api/home.js';
 import { HomeTokenCreateDialog } from './HomeTokenDialog.js';
+import { ConfirmDialog } from '../dialogs/ConfirmDialog.js';
 
 interface UserDetailsProps {
   homeId: string,
@@ -28,14 +29,27 @@ interface UserDetailsProps {
 export const HomeTokens = ({ homeId, homeName, tokens, showTokenValues, refetchData } : UserDetailsProps) => {
   const [_copiedText, copy] = useCopyToClipboard();
   const [ dialogOpen, setDialogOpen ] = useState(false);
+  const [ deleteTokenDialogOpen, setDeleteTokenDialogOpen ] = useState(false);
+  const [ deleteTokenText, setDeleteTokenText ] = useState<string>();
+  const [ deleteTokenId, setDeleteTokenId ] = useState<string | null>(null);
 
   const deleteMutation = useMutation({
     mutationFn: tokenDeleteMutation,
     onSuccess: refetchData
   });
 
-  const handleDeleteToken = async (tokenId: string) => {
-    await deleteMutation.mutateAsync({ homeId, tokenId });
+  const handleDeleteToken = async (tokenId: string, tokenName: string) => {
+    setDeleteTokenId(tokenId);
+    setDeleteTokenText(`Confirm to delete token: ${tokenName}`);
+    setDeleteTokenDialogOpen(true);
+  }
+
+  const handleDeleteTokenDialog = async (confirm?: boolean) => {
+    setDeleteTokenDialogOpen(false);
+    if (confirm && deleteTokenId) { 
+      await deleteMutation.mutateAsync({ homeId, tokenId: deleteTokenId });
+    }
+    setDeleteTokenId(null);
   }
 
   const handleCopyToken = (value: string) => {
@@ -64,6 +78,12 @@ export const HomeTokens = ({ homeId, homeName, tokens, showTokenValues, refetchD
         homeName={homeName}
         handleClose={onModalClose}
       />
+      <ConfirmDialog
+        key="tokenDeleteDialog"
+        warningText={deleteTokenText}
+        handleClose={handleDeleteTokenDialog}
+        open={deleteTokenDialogOpen}
+      />
       <List
         component="nav"
       >
@@ -78,7 +98,7 @@ export const HomeTokens = ({ homeId, homeName, tokens, showTokenValues, refetchD
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Delete token">
-                  <IconButton onClick={() => handleDeleteToken(token._id)} edge="end">
+                  <IconButton onClick={() => handleDeleteToken(token._id, token.name)} edge="end">
                     <DeleteIcon />
                   </IconButton>
                 </Tooltip>

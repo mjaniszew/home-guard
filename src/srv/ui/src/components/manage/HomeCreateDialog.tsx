@@ -11,6 +11,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
+import FormControl from '@mui/material/FormControl';
 
 import { homeCreateMutation } from '../../api/home';
 
@@ -61,23 +62,21 @@ export const HomeCreateDialog = ({ open, handleClose }: CreateHomeDialogProps) =
         Create new Home
       </DialogTitle>
       <DialogContent>
-      <Box
-        component="form"
-        noValidate
-        autoComplete="off"
-      >
+      <Box>
         <Stack spacing={2}>
           <DialogContentText>
             Create new Home and assign access tokens in order to add and manage your devices.
           </DialogContentText>
-          <TextField 
-            id="homeName"
-            label="Name"
-            variant="outlined"
-            onChange={(event) => setHomeName(event.target.value)}
-            error={!!error}
-            required
-          />
+          <FormControl>
+            <TextField 
+              id="homeName"
+              label="Name"
+              variant="outlined"
+              onChange={(event) => setHomeName(event.target.value)}
+              error={!!error}
+              required
+            />
+          </FormControl>
         </Stack>
       </Box>
       </DialogContent>

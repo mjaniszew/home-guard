@@ -15,10 +15,10 @@ const setup = async () => {
   db.createCollection('tokens');
   db.createCollection('sensors');
   db.createCollection('sensors_readings');
-  db.createView('sensors_readings_full', 'sensors_readings', [{$lookup: {from: 'sensors', localField: 'sensorId', foreignField: '_id', as: 'sensor'}}])
-  db.createView('sensors_with_readings', 'sensors', [{$lookup: {from: 'sensors_readings', localField: '_id', foreignField: 'sensorId', as: 'readings'}}])
-  db.createView('sensors_with_reading', 'sensors', [{$lookup: {from: "sensors_readings", let: {sid: "$_id"}, pipeline: [{$sort: {timestamp: -1}}, {$limit: 1}, {$match: {$expr: {$eq: ["$$sid", "$sensorId"]}}}], as: "lastReading"}}])
-  db.createView('homes_with_tokens', 'homes', [{$lookup: {from: 'tokens', localField: 'tokens', foreignField: '_id', as: 'tokens'}}])
+  db.command({create: 'sensors_readings_full', viewOn: 'sensors_readings', pipeline: [{$lookup: {from: 'sensors', localField: 'sensorId', foreignField: '_id', as: 'sensor'}}]});
+  db.command({create: 'sensors_with_readings', viewOn: 'sensors', pipeline: [{$lookup: {from: 'sensors_readings', localField: '_id', foreignField: 'sensorId', as: 'readings'}}]})
+  db.command({create: 'sensors_with_reading', viewOn: 'sensors', pipeline: [{$lookup: {from: "sensors_readings", let: {sid: "$_id"}, pipeline: [{$sort: {timestamp: -1}}, {$limit: 1}, {$match: {$expr: {$eq: ["$$sid", "$sensorId"]}}}], as: "lastReading"}}]})
+  db.command({create: 'homes_with_tokens', viewOn: 'homes', pipeline: [{$lookup: {from: 'tokens', localField: 'tokens', foreignField: '_id', as: 'tokens'}}]})
 
   return 'Done!';
 }

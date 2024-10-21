@@ -1,3 +1,7 @@
 .fullPageContainer {
   max-width: 100% !important;
 }
+
+.appRootContainer {
+  padding: 0 !important;
+}
