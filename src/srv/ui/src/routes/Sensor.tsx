@@ -33,6 +33,7 @@ export const Sensor = () => {
           <SensorReadings 
             sensorReadings={sensorReadings.data || []}
             readingLimit={readingLimit}
+            sensorType={sensorDetails.data?.type}
           />
         </Stack>
       </Box>

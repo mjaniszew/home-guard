@@ -38,7 +38,7 @@ const CamsList = () => {
           <Typography variant="h5" component="div">
             Monitoring cams
           </Typography>
-          <Paper elevation={4}>
+          <Paper elevation={4}>{cams.data?.length ? 
             <Table>
               <TableBody>
                 {cams.data?.map((camera, index) => (
@@ -65,8 +65,9 @@ const CamsList = () => {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
-          </Paper>
+            </Table> :
+            <Typography variant="body2" component="div">No cams detected</Typography>
+          }</Paper>
         </Stack>
       </CardContent>
     </Card>

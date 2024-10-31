@@ -15,14 +15,14 @@ export enum SENSOR_TYPES {
 export type HomeSensorResponse = {
   _id: string,
   name: string,
-  type: string,
+  type: SENSOR_TYPES,
   homeId: string
 };
 
 export type HomeSensorCurrentResponse = {
   _id: string,
   name: string,
-  type: string,
+  type: SENSOR_TYPES,
   homeId: string,
   lastReading: SensorReadingResponse[]
 };

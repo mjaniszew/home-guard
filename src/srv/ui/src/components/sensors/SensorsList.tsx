@@ -7,8 +7,14 @@ import TableHead from '@mui/material/TableHead';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
+import {
+  getSensorIcon,
+  formatSensorValue
+} from './SensorTypes';
 
-import { HomeSensorCurrentResponse } from '../../api/sensors';
+import { 
+  HomeSensorCurrentResponse
+} from '../../api/sensors';
 
 interface SensorsListProps {
   homeSensors: HomeSensorCurrentResponse[];
@@ -43,7 +49,9 @@ export const SensorsList = ({ homeSensors }: SensorsListProps) => {
             </TableCell>
             <TableCell align="right">
               {sensor.lastReading[0] ? 
-                <Chip label={sensor.lastReading[0].value} color="success" /> : 
+                <Chip icon={getSensorIcon(sensor.type)} label={
+                  formatSensorValue(sensor.lastReading[0].value, sensor.type)
+                } /> : 
                 <Chip label="Offline" color="default" />
               }
             </TableCell>

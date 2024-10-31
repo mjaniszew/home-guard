@@ -8,14 +8,21 @@ import TableRow from '@mui/material/TableRow';
 import TableHead from '@mui/material/TableHead';
 import Stack from '@mui/material/Stack';
 
-import { SensorReadingResponse } from '../../api/sensors';
+import {
+  formatSensorValue,
+} from './SensorTypes';
+import { 
+  SensorReadingResponse,
+  SENSOR_TYPES
+} from '../../api/sensors';
 
 interface SensorsListProps {
   sensorReadings: SensorReadingResponse[];
   readingLimit: number;
+  sensorType: SENSOR_TYPES;
 };
 
-export const SensorReadings = ({ sensorReadings, readingLimit }: SensorsListProps) => {
+export const SensorReadings = ({ sensorReadings, readingLimit, sensorType }: SensorsListProps) => {
   return (
     <Card>
       <CardContent>
@@ -40,7 +47,7 @@ export const SensorReadings = ({ sensorReadings, readingLimit }: SensorsListProp
                     {new Date(reading.timestamp).toLocaleString()}
                   </TableCell>
                   <TableCell scope="row" align="right">
-                    {reading.value}
+                    {formatSensorValue(reading.value, sensorType)}
                   </TableCell>
                 </TableRow>
               ))}
