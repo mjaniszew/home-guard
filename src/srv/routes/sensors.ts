@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import { 
   FastifyInstance,
   RouteShorthandOptions,
@@ -25,6 +26,8 @@ type SensorData = {
   homeId: string,
   type: SENSOR_TYPES,
 };
+
+type SensorEditData = Omit<SensorData, 'homeId'>;
 
 type TokenData = {
   name: string,
@@ -204,6 +207,19 @@ export const sensorsRoutes = async (fastify: FastifyInstance, options: RouteOpti
           timestamp: Date.now()
         });
 
+        const homeDetails = await db.collection('homes').findOne({
+          _id: new ObjectId(sensorDetails.homeId)
+        });
+
+        if (value === 'ALERT' && homeDetails?.notificationTopic) {
+          await fetch(
+            `https://ntfy.sh/${homeDetails.notificationTopic}`, {
+              method: 'POST',
+              body: `${sensorDetails.name}: ${value}!!!`
+            }
+          );
+        }
+
         return reply.send({status: 'OK'});
       } else {
         return reply.status(400).send({
@@ -245,6 +261,54 @@ export const sensorsRoutes = async (fastify: FastifyInstance, options: RouteOpti
       fastify.log.error(error);
     }
   })
+
+  fastify.post('/api/sensors/:sensorId/edit', {
+    onRequest: [fastify.authenticate]
+  }, async (request, reply) => {
+    try {
+        const { userId } = request.user;
+        const { sensorId } = await request.params as SensorRequestParams;
+        const { name, type } = request.body as SensorEditData;
+
+        const db = fastify.mongo.client.db(config.dbName);
+
+        const userHomes = await db.collection('homes').find({
+          userId: new ObjectId(userId)
+        }).toArray();
+  
+        const sensorData = await db.collection('sensors').findOne({
+          _id: new ObjectId(sensorId)
+        }) as WithId<SensorData>;
+  
+        const userIsOwnerOfSensor = userHomes.find(
+          (home) => home._id.toString() === sensorData.homeId.toString()
+        )
+
+        if (!userIsOwnerOfSensor) {
+          return reply.status(401).send({ error: 'Unauthorized' });
+        }
+
+        const updateFields = {} as Record<string, string>;
+
+        if (name) {
+          updateFields['name'] = name;
+        }
+  
+        if (type) {
+          updateFields['type'] = type;
+        }
+  
+        await db.collection('sensors').findOneAndUpdate(
+          { '_id': new ObjectId(sensorId) }, 
+          { $set: updateFields }
+        );
+
+        return reply.send({ status: 'DELETED' });
+    }
+    catch (error) {
+        fastify.log.error(error);
+    }
+  });
 
   fastify.delete('/api/sensors/:sensorId', {
     onRequest: [fastify.authenticate]

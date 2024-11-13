@@ -40,6 +40,10 @@ export const AppTopBar = () => {
     setAnchorEl(null);
   };
 
+  if (userHomesData.error?.status === 401) {
+    logout();
+  }
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">

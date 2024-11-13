@@ -10,7 +10,8 @@ import Chip from '@mui/material/Chip';
 import {
   getSensorIcon,
   formatSensorValue,
-  getSensorStateColor
+  getSensorStateColor,
+  sensorHasRecentReading
 } from './SensorTypes';
 
 import { 
@@ -49,7 +50,7 @@ export const SensorsList = ({ homeSensors }: SensorsListProps) => {
               </Link>
             </TableCell>
             <TableCell align="right">
-              {sensor.lastReading[0] ? 
+              {sensorHasRecentReading(sensor.lastReading[0]) ? 
                 <Chip 
                   icon={getSensorIcon(sensor.type)}
                   label={

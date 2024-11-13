@@ -23,12 +23,18 @@ export const Sensor = () => {
     return <span>Error: {sensorDetails.error?.message || sensorReadings.error?.message}</span>
   }
 
+  const refreshData = () => {
+    sensorDetails.refetch();
+    sensorReadings.refetch();
+  }
+
   return (
     <Container maxWidth="sm">
       <Box sx={{ my: 2 }}>
         <Stack spacing={2}>
           <SensorDetails 
             sensorData={sensorDetails.data || []}
+            refreshData={refreshData}
           />
           <SensorReadings 
             sensorReadings={sensorReadings.data || []}

@@ -5,7 +5,8 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 
 import { 
-  SENSOR_TYPES
+  SENSOR_TYPES,
+  SensorReadingResponse
 } from '../../api/sensors';
 
 export const SensorTypeIcons = {
@@ -65,3 +66,8 @@ export const getSensorStateColor = (value: string, sensorType: SENSOR_TYPES): SE
 
   return sensorStateColor;
 };
+
+export const sensorHasRecentReading = (reading: SensorReadingResponse): boolean => {
+  const offlineTresholdMs = 6 * 60 * 60 * 1000; // 6 hours treshold
+  return (reading.timestamp || 0) + offlineTresholdMs >= Date.now();
+}

@@ -9,16 +9,20 @@ import Grid from '@mui/material/Grid2';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
-import { ConfirmDialog } from '../dialogs/ConfirmDialog.js';
+import { ConfirmDialog } from '../dialogs/ConfirmDialog';
+import { SensorEditDialog } from './SensorEditDialog';
 import { HomeSensorResponse, sensorDeleteMutation } from '../../api/sensors';
 
 interface UserDetailsProps {
   sensorData: HomeSensorResponse;
+  refreshData: () => void;
 }
 
-export const SensorDetails = ({ sensorData }: UserDetailsProps) => {
+export const SensorDetails = ({ sensorData, refreshData }: UserDetailsProps) => {
   const navigate = useNavigate();
+  const [ sensorEditOpen, setSensorEditOpen ] = useState(false);
   const [ deleteSensorDialogOpen, setDeleteSensorDialogOpen ] = useState(false);
 
   const deleteMutation = useMutation({
@@ -31,6 +35,17 @@ export const SensorDetails = ({ sensorData }: UserDetailsProps) => {
   const handleDeleteSensor = () => {
     setDeleteSensorDialogOpen(true);
   };
+
+  const handleEditSensor = () => {
+    setSensorEditOpen(true);
+  };
+
+  const onModalClose = (refresh?: boolean) => {
+    setSensorEditOpen(false);
+    if (refresh) {
+      refreshData();
+    }
+  }
 
   const handleDeleteSensorDialog = async (confirm?: boolean) => {
     if (confirm) {
@@ -47,13 +62,25 @@ export const SensorDetails = ({ sensorData }: UserDetailsProps) => {
         handleClose={handleDeleteSensorDialog}
         open={deleteSensorDialogOpen}
       />
+      <SensorEditDialog 
+        open={sensorEditOpen}
+        sensorData={sensorData}
+        handleClose={onModalClose}
+      />
       <CardHeader
         subheader={
           <Grid container spacing={2}>
-            <Grid size={11}>
+            <Grid size={10}>
               <Typography variant="h5" component="div">
                 Sensor Details
               </Typography>
+            </Grid>
+            <Grid size={1}>
+              <Tooltip title="Edit sensor">
+                <IconButton onClick={handleEditSensor} edge="start">
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
             </Grid>
             <Grid size={1}>
               <Tooltip title="Delete sensor">

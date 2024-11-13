@@ -41,6 +41,12 @@ type SensorCreateData = {
   homeId: string
 };
 
+type SensorEditData = {
+  sensorId: string,
+  name: string,
+  type: string
+};
+
 type SensorDeleteData = {
   sensorId: string
 };
@@ -115,6 +121,24 @@ export const sensorCreateMutation = async ({ name, type, homeId }: SensorCreateD
     const response = await axios.post(
       `${BACKEND_URL}/api/sensors`,
       { name, type, homeId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      }
+    );
+    return response.data as HomeSensorResponse;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sensorEditMutation = async ({ sensorId, name, type }: SensorEditData) => {
+  const { token } = getCookieObject('auth');
+  try {
+    const response = await axios.post(
+      `${BACKEND_URL}/api/sensors/${sensorId}/edit`,
+      { name, type },
       {
         headers: {
           Authorization: `Bearer ${token}`,
