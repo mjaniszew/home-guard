@@ -69,5 +69,5 @@ export const getSensorStateColor = (value: string, sensorType: SENSOR_TYPES): SE
 
 export const sensorHasRecentReading = (reading: SensorReadingResponse): boolean => {
   const offlineTresholdMs = 6 * 60 * 60 * 1000; // 6 hours treshold
-  return (reading.timestamp || 0) + offlineTresholdMs >= Date.now();
+  return (reading?.timestamp || 0) + offlineTresholdMs >= Date.now();
 }
