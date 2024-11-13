@@ -9,7 +9,8 @@ import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import {
   getSensorIcon,
-  formatSensorValue
+  formatSensorValue,
+  getSensorStateColor
 } from './SensorTypes';
 
 import { 
@@ -49,9 +50,13 @@ export const SensorsList = ({ homeSensors }: SensorsListProps) => {
             </TableCell>
             <TableCell align="right">
               {sensor.lastReading[0] ? 
-                <Chip icon={getSensorIcon(sensor.type)} label={
-                  formatSensorValue(sensor.lastReading[0].value, sensor.type)
-                } /> : 
+                <Chip 
+                  icon={getSensorIcon(sensor.type)}
+                  label={
+                    formatSensorValue(sensor.lastReading[0].value, sensor.type)
+                  }
+                  color={getSensorStateColor(sensor.lastReading[0].value, sensor.type)}
+                /> : 
                 <Chip label="Offline" color="default" />
               }
             </TableCell>

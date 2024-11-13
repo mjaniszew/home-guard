@@ -26,6 +26,11 @@ export const SensorTypeUnits = {
   [SENSOR_TYPES.OTHER_TEXT_MEASURE]: ""
 }
 
+enum SENSOR_STATE_COLORS {
+  DEFAULT = 'default',
+  ERROR = 'error'
+}
+
 export const getSensorIcon = (sensorType: SENSOR_TYPES) => {
   return SensorTypeIcons[sensorType];
 };
@@ -37,9 +42,10 @@ export const getSensorUnit = (sensorType: SENSOR_TYPES) => {
 export const formatSensorValue = (value: string, sensorType: SENSOR_TYPES) => {
   let formattedValue;
 
-  if (
+  if (sensorType ===  SENSOR_TYPES.HUMIDITY) {
+    formattedValue = `${Number(value).toFixed(0)} ${getSensorUnit(sensorType)}`;
+  } else if (
     sensorType === SENSOR_TYPES.TEMPERATURE ||
-    sensorType ===  SENSOR_TYPES.HUMIDITY ||
     sensorType ===  SENSOR_TYPES.OTHER_NUMERICAL_MEASURE
   ) {
     formattedValue = `${Number(value).toFixed(1)} ${getSensorUnit(sensorType)}`;
@@ -48,4 +54,14 @@ export const formatSensorValue = (value: string, sensorType: SENSOR_TYPES) => {
   }
 
   return formattedValue;
+};
+
+export const getSensorStateColor = (value: string, sensorType: SENSOR_TYPES): SENSOR_STATE_COLORS => {
+  let sensorStateColor = SENSOR_STATE_COLORS.DEFAULT;
+
+  if (sensorType ===  SENSOR_TYPES.FLOOD && value === 'ALERT') {
+    sensorStateColor = SENSOR_STATE_COLORS.ERROR;
+  }
+
+  return sensorStateColor;
 };

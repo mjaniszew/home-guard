@@ -24,8 +24,13 @@ type UserHomeTokenDeleteParams = {
   tokenId: string
 }
 
-type UserHomeDeleteParams = {
+type UserHomeEditDeleteParams = {
   homeId: string
+}
+
+type UserHomeEditBody = {
+  name?: string,
+  notificationTopic?: string
 }
 
 type HomeToken = {
@@ -40,7 +45,8 @@ type HomeTokenCreateBody = Omit<HomeToken, '_id' | 'homeId'>;
 type UserHomeType = {
   _id: string,
   name: string,
-  userId: string
+  userId: string,
+  notificationTopic?: string,
   tokens: HomeToken[]
 }
 
@@ -77,12 +83,13 @@ export const homesRoutes = async (fastify: FastifyInstance, options: RouteOption
   }, async (request, reply) => {
     try {
       const { userId } = request.user;
-      const { name } = request.body as UserHomeCreateBody;
+      const { name, notificationTopic } = request.body as UserHomeCreateBody;
 
       const db = fastify.mongo.client.db(config.dbName); 
       await db.collection('homes').insertOne({
         userId: new ObjectId(userId),
         tokens: [],
+        notificationTopic: notificationTopic || null,
         name
       });
 
@@ -92,11 +99,51 @@ export const homesRoutes = async (fastify: FastifyInstance, options: RouteOption
     }
   })
 
+  fastify.post('/api/homes/:homeId/edit', {
+    onRequest: [fastify.authenticate]
+  }, async (request, reply) => {
+    try {
+      const { homeId } = request.params as UserHomeEditDeleteParams;
+      const { name, notificationTopic } = request.body as UserHomeEditBody;
+      const { userId } = request.user;
+
+      const db = fastify.mongo.client.db(config.dbName);
+
+      const userHomes = await db.collection('homes').find({
+        userId: new ObjectId(userId)
+      }).toArray();
+      const userIsOwnerOfHome = userHomes.find((home) => home._id.toString() === homeId)
+
+      if (!userIsOwnerOfHome) {
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
+
+      const updateFields = {} as Record<string, string>;
+
+      if (name) {
+        updateFields['name'] = name;
+      }
+
+      if (notificationTopic) {
+        updateFields['notificationTopic'] = notificationTopic;
+      }
+
+      await db.collection('homes').findOneAndUpdate(
+        { '_id': new ObjectId(homeId) }, 
+        { $set: updateFields }
+      );
+
+      return reply.send({status: 'OK'});
+    } catch (error) {
+      fastify.log.error(error);
+    }
+  })
+
   fastify.delete('/api/homes/:homeId', {
     onRequest: [fastify.authenticate]
   }, async (request, reply) => {
     try {
-      const { homeId } = request.params as UserHomeDeleteParams;
+      const { homeId } = request.params as UserHomeEditDeleteParams;
       const { userId } = request.user;
 
       const db = fastify.mongo.client.db(config.dbName);

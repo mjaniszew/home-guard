@@ -13,10 +13,16 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import FormControl from '@mui/material/FormControl';
 
-import { homeCreateMutation } from '../../api/home';
+import { 
+  homeEditMutation,
+  UserHomeDataResponse
+} from '../../api/home';
 
-interface CreateHomeDialogProps {
+export type EditHomeDetailsType = Omit<UserHomeDataResponse, 'tokens' | 'userId'>;
+
+interface EditHomeDialogProps {
   open: boolean;
+  homeDetails: EditHomeDetailsType;
   handleClose: (refresh?: boolean) => void;
 };
 
@@ -26,13 +32,13 @@ type ErrorResponse = AxiosError & {
   }
 };
 
-export const HomeCreateDialog = ({ open, handleClose }: CreateHomeDialogProps) => {
-  const [ homeName, setHomeName ] = useState('');
+export const HomeEditDialog = ({ open, handleClose, homeDetails }: EditHomeDialogProps) => {
+  const [ homeName, setHomeName ] = useState(homeDetails.name);
   const [ notificationTopic, setNotificationTopic ] = useState('');
   const [ error, setError ] = useState<string | null>(null);
 
-  const createMutation = useMutation({
-    mutationFn: homeCreateMutation,
+  const editMutation = useMutation({
+    mutationFn: homeEditMutation,
     onError: (err: Error & {response: ErrorResponse}) => (
       setError(err.response.data?.error)
     ),
@@ -41,7 +47,8 @@ export const HomeCreateDialog = ({ open, handleClose }: CreateHomeDialogProps) =
 
   const handleSubmit = async (event: React.SyntheticEvent) => {
     event.preventDefault();
-    await createMutation.mutateAsync({ 
+    await editMutation.mutateAsync({ 
+      homeId: homeDetails._id,
       name: homeName,
       notificationTopic
     });
@@ -63,13 +70,13 @@ export const HomeCreateDialog = ({ open, handleClose }: CreateHomeDialogProps) =
       onClose={() => close()}
     >
       <DialogTitle id="home-dialog-title">
-        Create new Home
+        Edit your home: {homeDetails.name}
       </DialogTitle>
       <DialogContent>
       <Box>
         <Stack spacing={2}>
           <DialogContentText>
-            Create new Home and assign access tokens in order to add and manage your devices.
+            Edit your home details. Fields left empty will not be edited on saving
           </DialogContentText>
           <FormControl>
             <TextField 
@@ -78,7 +85,6 @@ export const HomeCreateDialog = ({ open, handleClose }: CreateHomeDialogProps) =
               variant="outlined"
               onChange={(event) => setHomeName(event.target.value)}
               error={!!error}
-              required
             />
             <TextField 
               id="homeNotifyTopic"
@@ -95,8 +101,7 @@ export const HomeCreateDialog = ({ open, handleClose }: CreateHomeDialogProps) =
         <Button onClick={() => close()}>Cancel</Button>
         <Button 
           onClick={handleSubmit}
-          disabled={!homeName}
-        >Create</Button>
+        >Save</Button>
       </DialogActions>
     </Dialog>
   );

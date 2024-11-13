@@ -11,25 +11,39 @@ import Checkbox from '@mui/material/Checkbox';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import Button from '@mui/material/Button';
 
 import { HomeCreateDialog } from './HomeCreateDialog';
-import { ConfirmDialog } from '../dialogs/ConfirmDialog.js';
-import { HomeTokens } from './HomeTokens.js';
-import { useUserHomesWithTokens, useUserHomes} from '../../hooks/useHome.js';
-import { homeDeleteMutation } from '../../api/home.js';
+import { HomeEditDialog, EditHomeDetailsType } from './HomeEditDialog';
+import { ConfirmDialog } from '../dialogs/ConfirmDialog';
+import { HomeTokens } from './HomeTokens';
+import { 
+  useUserHomesWithTokens,
+  useUserHomes
+} from '../../hooks/useHome';
+import { UserHomeDataResponse } from "../../api/home";
+import { homeDeleteMutation } from '../../api/home';
+
+const defaultHomeDetails = {
+  _id: '',
+  name: ''
+}
 
 export const HomeSettings = () => {
   const userHomesWithTokensApi = useUserHomesWithTokens();
   const userHomesApi = useUserHomes();
-  const [ homeDialogOpen, setHomeDialogOpen ] = useState(false);
+  const [ homeCreateOpen, setHomeCreateOpen ] = useState(false);
+  const [ homeEditOpen, setHomeEditOpen ] = useState(false);
+  const [ selectedHomeDetails, setSelectedHomeDetails ] = useState<EditHomeDetailsType>(defaultHomeDetails);
   const [ showTokenValues, setShowTokenValues ] = useState(false);
   const [ deleteHomeDialogOpen, setDeleteHomeDialogOpen ] = useState(false);
   const [ deleteHomeText, setDeleteHomeText ] = useState<string>();
   const [ deleteHomeId, setDeleteHomeId ] = useState<string | null>(null);
 
   const onModalClose = (refresh?: boolean) => {
-    setHomeDialogOpen(false);
+    setHomeCreateOpen(false);
+    setHomeEditOpen(false);
     if (refresh) {
       userHomesWithTokensApi.refetch();
     }
@@ -57,6 +71,11 @@ export const HomeSettings = () => {
     setDeleteHomeId(null);
   }
 
+  const handleHomeEdit = async (homeDetails: UserHomeDataResponse) => {
+    setSelectedHomeDetails(homeDetails);
+    setHomeEditOpen(true);
+  }
+
   if (userHomesWithTokensApi.isPending) {
     return <span>Loading User Homes...</span>
   }
@@ -69,7 +88,12 @@ export const HomeSettings = () => {
     <Card>
       <CardContent>
         <HomeCreateDialog 
-          open={homeDialogOpen}
+          open={homeCreateOpen}
+          handleClose={onModalClose}
+        />
+        <HomeEditDialog 
+          open={homeEditOpen}
+          homeDetails={selectedHomeDetails}
           handleClose={onModalClose}
         />
         <ConfirmDialog
@@ -87,13 +111,20 @@ export const HomeSettings = () => {
         {userHomesWithTokensApi.data.map((home) => (
           <Paper key={home._id} elevation={3} sx={{my: 1, p: 2}}>
             <Grid container spacing={2}>
-              <Grid size={11}>
+              <Grid size={10}>
                 <Typography variant="h6" component="div">
                   {home.name}
                 </Typography>
               </Grid>
               <Grid size={1}>
-                <Tooltip title="Delete token">
+                <Tooltip title="Edit home">
+                  <IconButton onClick={() => handleHomeEdit(home)} edge="start">
+                    <EditIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
+              <Grid size={1}>
+                <Tooltip title="Delete home">
                   <IconButton onClick={() => handleDeleteHome(home._id, home.name)} edge="start">
                     <DeleteIcon />
                   </IconButton>
@@ -103,6 +134,9 @@ export const HomeSettings = () => {
             <Typography color="text.secondary">
               Home ID: {home._id}
             </Typography>
+            {home.notificationTopic && <Typography color="text.secondary">
+              Notification Topic: {home.notificationTopic}
+            </Typography>}
             <FormGroup>
               <FormControlLabel 
                 control={
@@ -125,7 +159,7 @@ export const HomeSettings = () => {
         ))}
         <Button 
           variant="outlined"
-          onClick={() => setHomeDialogOpen(true)}
+          onClick={() => setHomeCreateOpen(true)}
         >
           Add Home
         </Button>

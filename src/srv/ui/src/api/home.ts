@@ -20,7 +20,8 @@ export type HomeTokenDeleteData = {
 export type UserHomeDataResponse = {
   _id: string,
   name: string,
-  userId: string
+  userId: string,
+  notificationTopic?: string,
   tokens: HomeTokenResponse[]
 }
 
@@ -75,19 +76,45 @@ export const tokenDeleteMutation = async ({ homeId, tokenId }: HomeTokenDeleteDa
   }
 };
 
-export const homeCreateMutation = async ({ name }: {name: string}) => {
+export const homeCreateMutation = async ({ 
+  name, notificationTopic 
+}: {
+  name: string, notificationTopic: string
+}) => {
   const { token, userId } = getCookieObject('auth');
   try {
     const response = await axios.post(
       `${BACKEND_URL}/api/homes`,
-      { name, userId },
+      { name, userId, notificationTopic },
       {
         headers: {
           Authorization: `Bearer ${token}`,
         }
       }
     );
-    return response.data as HomeTokenResponse;
+    return response.data as UserHomeDataResponse;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const homeEditMutation = async ({ 
+  homeId, name, notificationTopic 
+}: {
+  homeId: string, name: string, notificationTopic: string
+}) => {
+  const { token } = getCookieObject('auth');
+  try {
+    const response = await axios.post(
+      `${BACKEND_URL}/api/homes/${homeId}/edit`,
+      { name, notificationTopic },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      }
+    );
+    return response.data as UserHomeDataResponse;
   } catch (error) {
     throw error;
   }
