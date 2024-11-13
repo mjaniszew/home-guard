@@ -176,7 +176,7 @@ export const sensorsRoutes = async (fastify: FastifyInstance, options: RouteOpti
 
   fastify.post('/api/sensors/readings', {}, async (request, reply) => {
     try {
-      const token = request.headers['static_auth'];
+      const token = request.headers['x-static-auth'];
       const { sensorId, value } = request.body as SensorReadingData;
 
       if (!token) {
@@ -187,11 +187,11 @@ export const sensorsRoutes = async (fastify: FastifyInstance, options: RouteOpti
 
       const tokenData = await db.collection('tokens').findOne({
         value: token
-      }) as WithId<SensorData>;
+      }) as WithId<TokenData>;
 
       const sensorDetails = await db.collection('sensors').findOne({
         _id: new ObjectId(sensorId)
-      }) as WithId<TokenData>;
+      }) as WithId<SensorData>;
 
       const userIsOwnerOfHome = tokenData?.homeId.toString() === sensorDetails?.homeId.toString();
 
@@ -211,11 +211,11 @@ export const sensorsRoutes = async (fastify: FastifyInstance, options: RouteOpti
           _id: new ObjectId(sensorDetails.homeId)
         });
 
-        if (value === 'ALERT' && homeDetails?.notificationTopic) {
+        if (sensorDetails?.type === 'FLOOD' && value === 'ALERT' && homeDetails?.notificationTopic) {
           await fetch(
             `https://ntfy.sh/${homeDetails.notificationTopic}`, {
               method: 'POST',
-              body: `${sensorDetails.name}: ${value}!!!`
+              body: `WATER ALERT! - ${sensorDetails.name}`
             }
           );
         }
